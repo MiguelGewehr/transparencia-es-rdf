@@ -1,0 +1,13 @@
+dados/*
+!dados/LEIA-ME.md
+!dados/amostra-receita.csv
+
+saida/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
