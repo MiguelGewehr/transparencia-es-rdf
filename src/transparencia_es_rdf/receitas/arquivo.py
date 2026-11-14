@@ -1,0 +1,3 @@
+ID_RECURSO_POR_ANO = {
+    2025 : '2dc2d874-0d72-4c01-b8a0-ecb6f392d6e4'
+}
