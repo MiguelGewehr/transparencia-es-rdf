@@ -1,4 +1,5 @@
 import argparse
+import time
 from datetime import date
 from pathlib import Path
 
@@ -6,19 +7,28 @@ from transparencia_es_rdf.config import PASTA_SAIDA
 from transparencia_es_rdf.metadados.cabecalho import montar_cabecalho
 from transparencia_es_rdf.metadados.uris import montar_uris
 from transparencia_es_rdf.portal.api import buscar_pacote, buscar_recurso
+from transparencia_es_rdf.portal.leitura import ler_linhas
+from transparencia_es_rdf.rdf.ntriples import abrir_saida
 from transparencia_es_rdf.receitas import arquivo as arquivo_receitas
+from transparencia_es_rdf.receitas import conversor as conversor_receitas
 
 ARQUIVO_DA_BASE = {
-    'receitas' : arquivo_receitas
+    'receitas': arquivo_receitas,
+}
+CONVERSOR_DA_BASE = {
+    'receitas': conversor_receitas,
 }
 
+
+def milhares(numero: int) -> str:
+    return f'{numero:,}'.replace(',', '.')
+
+
 def gerar_metadados(nome_base: str, ano: int) -> Path:
-
     ids_por_ano = ARQUIVO_DA_BASE[nome_base].ID_RECURSO_POR_ANO
-
     if ano not in ids_por_ano:
         anos = ', '.join(str(a) for a in sorted(ids_por_ano))
-        raise(SystemExit(f'Não há recurso de {nome_base} para {ano}. 'f'Anos cadastrados: {anos}.'))
+        raise SystemExit(f'Não há recurso de {nome_base} para {ano}. Anos cadastrados: {anos}.')
 
     recurso = buscar_recurso(ids_por_ano[ano])
     pacote = buscar_pacote(recurso['package_id'])
@@ -32,20 +42,57 @@ def gerar_metadados(nome_base: str, ano: int) -> Path:
     print(f'{len(cabecalho)} triplas gravadas em {caminho}')
     return caminho
 
-def main() -> None:
 
+def converter(nome_base: str, entrada: Path, saida: Path) -> dict:
+    """Lê o CSV da base, escreve as triplas em N-Triples e mostra o relatório."""
+    if not entrada.is_file():
+        raise SystemExit(f'Arquivo não encontrado: {entrada}')
+
+    arquivo_da_base = ARQUIVO_DA_BASE[nome_base]
+    conversor_da_base = CONVERSOR_DA_BASE[nome_base]
+
+    linhas = ler_linhas(entrada, arquivo_da_base.COLUNAS, arquivo_da_base.SEPARADOR,
+                        arquivo_da_base.CODIFICACAO)
+    inicio = time.perf_counter()
+    with abrir_saida(saida) as destino:
+        relatorio = conversor_da_base.converter_linhas(linhas, destino)
+    segundos = time.perf_counter() - inicio
+
+    print(f'{milhares(relatorio["linhas_lidas"])} linhas lidas de {entrada}')
+    print(f'{milhares(relatorio["triplas_escritas"])} triplas gravadas em {saida} ({segundos:.0f} s)')
+    print(f'Linhas repetidas, escritas uma vez só: {milhares(relatorio["linhas_repetidas"])}')
+    print('Entidades por classe:')
+    for classe, quantidade in relatorio['entidades_por_classe'].items():
+        print(f'  {classe:<46}{milhares(quantidade):>10}')
+    return relatorio
+
+
+def main() -> None:
+    """Lê o que foi digitado no terminal e chama o comando pedido."""
     parser = argparse.ArgumentParser(
         prog='transparencia-es-rdf',
-        description='Converte bases do Portal de Dados Abertos do ES para RDF.'
+        description='Converte bases do Portal de Dados Abertos do ES para RDF.',
     )
-
     subcomandos = parser.add_subparsers(dest='comando', required=True)
 
-    comando_metadados = subcomandos.add_parser('metadados', help='grava o cabeçalho de metadados de uma base e ano')
-    comando_metadados.add_argument('base', choices=sorted(ARQUIVO_DA_BASE), help='nome da base, ex.: receitas')
+    comando_metadados = subcomandos.add_parser(
+        'metadados', help='grava o cabeçalho de metadados de uma base e ano')
+    comando_metadados.add_argument('base', choices=sorted(ARQUIVO_DA_BASE),
+                                   help='nome da base, ex.: receitas')
     comando_metadados.add_argument('ano', type=int, help='ano do arquivo, ex.: 2025')
 
-    argumentos =  parser.parse_args()
+    comando_converter = subcomandos.add_parser(
+        'converter', help='converte o CSV de uma base em N-Triples')
+    comando_converter.add_argument('base', choices=sorted(CONVERSOR_DA_BASE),
+                                   help='nome da base, ex.: receitas')
+    comando_converter.add_argument('entrada', type=Path,
+                                   help='CSV de entrada, ex.: dados/amostra-receitas.csv')
+    comando_converter.add_argument('saida', type=Path,
+                                   help='arquivo N-Triples de saída; se terminar em .gz, sai compactado')
+
+    argumentos = parser.parse_args()
 
     if argumentos.comando == 'metadados':
         gerar_metadados(argumentos.base, argumentos.ano)
+    elif argumentos.comando == 'converter':
+        converter(argumentos.base, argumentos.entrada, argumentos.saida)
