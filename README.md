@@ -39,7 +39,7 @@ Os comandos rodam na pasta do repositório, com o ambiente ativado.
 
 ## A ontologia
 
-A pasta [`ontologia/`](ontologia) guarda uma cópia dos arquivos do [secont-ontologias](https://github.com/Renzo-Henrique/secont-ontologias) no commit `35dd7b3`:
+A pasta [`ontologia/`](ontologia) guarda uma cópia dos arquivos do [secont-ontologias](https://github.com/Renzo-Henrique/secont-ontologias) no commit `e0fff39`, de 16 de novembro de 2026:
 
 | Pasta | O que tem |
 |---|---|

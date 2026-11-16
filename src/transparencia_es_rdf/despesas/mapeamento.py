@@ -2,7 +2,7 @@
 classes e relações que a ontologia usa para ligar as entidades.
 
 É a tabela que se confere contra o mapeamento da equipe
-(ontologia/mapeamentos/base-despesas/Despesas-2025.csv, commit 90c3354). Os
+(ontologia/mapeamentos/base-despesas/Despesas-2025.csv, commit e0fff39). Os
 dicionários de atributos cobrem 68 das 71 colunas do arquivo, cada coluna uma
 vez só. As outras 3 o mapeamento da equipe deixa sem destino.
 

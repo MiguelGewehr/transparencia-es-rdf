@@ -4,7 +4,7 @@ Funciona como o conversor de Receitas: recebe as linhas já lidas
 (portal/leitura.py) e um destino já aberto para escrita (rdf/ntriples.py), e
 usa as mesmas funções de rdf/escrita.py para não repetir triplas.
 
-O que a ontologia (commit 90c3354) diz que uma linha descreve (cada seta é
+O que a ontologia (commit e0fff39) diz que uma linha descreve (cada seta é
 uma propriedade; as marcadas com * só existem se a linha tiver a entidade):
 
     Registro --temDespesaOrcamentaria---------> Despesa
