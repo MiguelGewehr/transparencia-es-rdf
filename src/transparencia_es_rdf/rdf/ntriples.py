@@ -1,11 +1,21 @@
+"""
+Escrita de triplas em N-Triples: uma tripla por linha do arquivo.
+
+Cada linha tem a forma
+
+    <sujeito> <predicado> objeto .
+
+em que o objeto é uma URI entre < > ou um literal entre aspas. Este arquivo só
+formata e escreve: não sabe o que é receita ou despesa.
+"""
+
 import gzip
-import re
+from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 
 from transparencia_es_rdf.rdf.vocabularios import XSD_DATETIME, XSD_DECIMAL
 
-FORMATO_DE_DATA_E_HORA = re.compile(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}')
 
 def uri(endereco: str) -> str:
     return f'<{endereco}>'
@@ -17,11 +27,8 @@ def literal_de_texto(texto: str) -> str:
     return f'"{escapado}"'
 
 def literal_de_data_e_hora(texto: str) -> str:
-
-    if not FORMATO_DE_DATA_E_HORA.fullmatch(texto):
-        raise ValueError(f'Data e hora fora do formato AAAA-MM-DDThh:mm:ss: {texto!r}')
-
-    return f'"{texto}"^^<{XSD_DATETIME}>'
+    data = datetime.strptime(texto, '%Y-%m-%dT%H:%M:%S')
+    return f'"{data.isoformat()}"^^<{XSD_DATETIME}>'
 
 def numero_canonico(numero: Decimal) -> str: 
 

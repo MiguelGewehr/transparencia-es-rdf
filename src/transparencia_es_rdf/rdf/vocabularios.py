@@ -19,7 +19,7 @@ RDF_TYPE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
 XSD_DECIMAL = 'http://www.w3.org/2001/XMLSchema#decimal'
 XSD_DATETIME = 'http://www.w3.org/2001/XMLSchema#dateTime'
 
-# Começo das URIs dos dados (receitas, registros, UGs...): http://localhost:8000/id/
+# Começo das URIs dos dados (receitas, registros, UGs...): http://localhost:8000/id/ (provisorio)
 BASE_DAS_URIS_DE_DADOS = f'{URL_BASE_DADOS}/id/'
 
 
