@@ -24,6 +24,7 @@ from transparencia_es_rdf.portal.leitura import ler_linhas
 from transparencia_es_rdf.rdf.ntriples import abrir_saida
 from transparencia_es_rdf.receitas import arquivo as arquivo_receitas
 from transparencia_es_rdf.receitas import conversor as conversor_receitas
+from transparencia_es_rdf.rdf.turtle import gravar_em_turtle
 
 # Cada base tem a sua pasta, com os mesmos nomes de arquivo.
 ARQUIVO_DA_BASE = {
@@ -85,6 +86,13 @@ def converter(nome_base: str, entrada: Path, saida: Path) -> dict:
         print(f'  {classe:<46}{milhares(quantidade):>10}')
     return relatorio
 
+def gerar_turtle(entrada: Path, saida: Path) -> None:
+    """Grava em Turtle um N-Triples pequeno, como a amostra, para leitura."""
+    if not entrada.is_file():
+        raise SystemExit(f'Arquivo não encontrado: {entrada}')
+    quantidade = gravar_em_turtle(entrada, saida)
+    print(f'{milhares(quantidade)} triplas gravadas em {saida}')
+
 
 def main() -> None:
     """Lê o que foi digitado no terminal e chama o comando pedido."""
@@ -109,9 +117,18 @@ def main() -> None:
     comando_converter.add_argument('saida', type=Path,
                                    help='arquivo N-Triples de saída; se terminar em .gz, sai compactado')
 
+    comando_turtle = subcomandos.add_parser(
+        'turtle', help='grava em Turtle um N-Triples pequeno, como a amostra, para leitura')
+    comando_turtle.add_argument('entrada', type=Path,
+                                help='arquivo N-Triples, ex.: saida/amostra-receitas.nt')
+    comando_turtle.add_argument('saida', type=Path,
+                                help='arquivo Turtle de saída, ex.: saida/amostra-receitas.ttl')
+    
     argumentos = parser.parse_args()
 
     if argumentos.comando == 'metadados':
         gerar_metadados(argumentos.base, argumentos.ano)
     elif argumentos.comando == 'converter':
         converter(argumentos.base, argumentos.entrada, argumentos.saida)
+    elif argumentos.comando == 'turtle':
+        gerar_turtle(argumentos.entrada, argumentos.saida)
