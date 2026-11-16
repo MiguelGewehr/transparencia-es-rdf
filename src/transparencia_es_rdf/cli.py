@@ -2,6 +2,7 @@
 
 Uso:
     transparencia-es-rdf metadados receitas 2025
+    transparencia-es-rdf metadados despesas 2024 --arquivo restos-a-pagar
     transparencia-es-rdf converter receitas dados/receitas/amostra/amostra-receitas.csv saida/amostra-receitas.nt
     transparencia-es-rdf converter despesas dados/despesa/amostra/amostra-despesas.csv saida/amostra-despesas.nt
     transparencia-es-rdf converter despesas dados/despesa/bruto/RestosAPagar-2024.csv saida/restos-a-pagar-2024.nt.gz
@@ -58,12 +59,24 @@ def milhares(numero: int) -> str:
     return f'{numero:,}'.replace(',', '.')
 
 
-def gerar_metadados(nome_base: str, ano: int) -> Path:
-    """Busca o recurso e o pacote na API, monta o cabeçalho e grava o .ttl."""
-    ids_por_ano = ARQUIVO_DA_BASE[nome_base].ID_RECURSO_POR_ANO
+def gerar_metadados(nome_base: str, ano: int, nome_do_arquivo: str | None = None) -> Path:
+    """Busca o recurso e o pacote na API, monta o cabeçalho e grava o .ttl.
+
+    Em Despesas, nome_do_arquivo diz qual dos quatro arquivos ('despesas',
+    'restos-a-pagar'...); sem ele, vale o arquivo Despesas. Em Receitas, não se usa.
+    """
+    if nome_base == 'despesas':
+        nome_do_arquivo = nome_do_arquivo or 'despesas'
+        ids_por_ano = arquivo_despesas.ID_RECURSO_POR_ARQUIVO_E_ANO[nome_do_arquivo]
+        nome_da_saida = nome_do_arquivo
+    elif nome_do_arquivo is not None:
+        raise SystemExit('A opção --arquivo só vale para despesas.')
+    else:
+        ids_por_ano = ARQUIVO_DA_BASE[nome_base].ID_RECURSO_POR_ANO
+        nome_da_saida = nome_base
     if ano not in ids_por_ano:
         anos = ', '.join(str(a) for a in sorted(ids_por_ano))
-        raise SystemExit(f'Não há recurso de {nome_base} para {ano}. Anos cadastrados: {anos}.')
+        raise SystemExit(f'Não há recurso de {nome_da_saida} para {ano}. Anos cadastrados: {anos}.')
 
     recurso = buscar_recurso(ids_por_ano[ano])
     pacote = buscar_pacote(recurso['package_id'])
@@ -72,7 +85,7 @@ def gerar_metadados(nome_base: str, ano: int) -> Path:
     cabecalho = montar_cabecalho(recurso, pacote, uris, nome_base, data_criacao=date.today())
 
     PASTA_SAIDA.mkdir(exist_ok=True)
-    caminho = PASTA_SAIDA / f'{nome_base}-{ano}.metadados.ttl'
+    caminho = PASTA_SAIDA / f'{nome_da_saida}-{ano}.metadados.ttl'
     cabecalho.serialize(destination=caminho, format='turtle')
     print(f'{len(cabecalho)} triplas gravadas em {caminho}')
     return caminho
@@ -131,6 +144,8 @@ def main() -> None:
     comando_metadados.add_argument('base', choices=sorted(ARQUIVO_DA_BASE),
                                    help='nome da base, ex.: receitas')
     comando_metadados.add_argument('ano', type=int, help='ano do arquivo, ex.: 2025')
+    comando_metadados.add_argument('--arquivo', choices=sorted(arquivo_despesas.COLUNAS_POR_ARQUIVO),
+                                   help='só em despesas: qual dos quatro arquivos (sem a opção, o arquivo Despesas)')
 
     comando_converter = subcomandos.add_parser(
         'converter', help='converte o CSV de uma base em N-Triples')
@@ -151,7 +166,7 @@ def main() -> None:
     argumentos = parser.parse_args()
 
     if argumentos.comando == 'metadados':
-        gerar_metadados(argumentos.base, argumentos.ano)
+        gerar_metadados(argumentos.base, argumentos.ano, argumentos.arquivo)
     elif argumentos.comando == 'converter':
         converter(argumentos.base, argumentos.entrada, argumentos.saida)
     elif argumentos.comando == 'turtle':

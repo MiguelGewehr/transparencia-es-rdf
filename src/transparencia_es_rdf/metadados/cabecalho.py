@@ -1,9 +1,10 @@
 from datetime import date
 
 from rdflib import Graph, Literal, URIRef
-from rdflib.namespace import DCAT, DCTERMS, OWL, PROV, RDF, RDFS, VANN, XSD
+from rdflib.namespace import DCAT, DCTERMS, OWL, PROV, RDF, RDFS, XSD
 
-from transparencia_es_rdf.config import AUTOR, IDIOMA, URL_BASE_DADOS, VERSAO_GRAFO
+from transparencia_es_rdf.config import AUTOR, IDIOMA, VERSAO_GRAFO
+from transparencia_es_rdf.rdf.vocabularios import NAMESPACE_DESPESAS, NAMESPACE_NUCLEO, NAMESPACE_RECEITAS
 
 PREFIXOS = {
     'dcat': DCAT,
@@ -12,8 +13,15 @@ PREFIXOS = {
     'prov': PROV,
     'rdf': RDF,
     'rdfs': RDFS,
-    'vann': VANN,
     'xsd': XSD,
+}
+
+# Os módulos da ontologia que os dados de cada base usam: o da base e o núcleo.
+# A URI de um módulo é o namespace sem o "#" do final, como no owl:Ontology
+# que abre cada .ttl de ontologia/out/ttl/.
+MODULOS_DA_BASE = {
+    'receitas': [NAMESPACE_RECEITAS, NAMESPACE_NUCLEO],
+    'despesas': [NAMESPACE_DESPESAS, NAMESPACE_NUCLEO],
 }
 
 def criar_grafo_vazio() -> Graph:
@@ -44,9 +52,10 @@ def descrever_grafo_convertido(cabecalho : Graph, uris: dict, recurso: dict,
     cabecalho.add((sujeito, DCTERMS.language, Literal(IDIOMA)))
     cabecalho.add((sujeito, DCTERMS.license, URIRef(pacote['license_url'])))
 
-    namespace_vocabulario = f'{URL_BASE_DADOS}/vocab/{nome_base}#'
-    cabecalho.add((sujeito, VANN.preferredNamespacePrefix, Literal(nome_base)))
-    cabecalho.add((sujeito, VANN.preferredNamespaceUri, Literal(namespace_vocabulario, datatype=XSD.anyURI)))
+    # Os dados seguem a ontologia: dcterms:conformsTo é o jeito do DCAT de
+    # apontar o modelo que um conjunto de dados segue.
+    for namespace in MODULOS_DA_BASE[nome_base]:
+        cabecalho.add((sujeito, DCTERMS.conformsTo, URIRef(namespace.rstrip('#'))))
 
     cabecalho.add((sujeito, PROV.wasDerivedFrom, URIRef(uris['distribuicao'])))
 

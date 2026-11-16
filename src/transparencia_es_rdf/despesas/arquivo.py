@@ -14,13 +14,16 @@ Os quatro têm o mesmo formato e colunas diferentes, então o cabeçalho basta
 para saber de qual arquivo se trata (identificar_arquivo, no fim deste arquivo).
 """
 
-# ID do recurso (o arquivo CSV) de cada ano no dados.es.gov.br. O de 2025 é o
-# que o protótipo usou em 02/09 (seção 9.1 da descrição do TCC) e não foi
-# conferido depois. Em 16/10 o portal trocou os recursos de Receitas, e o ID
-# de Receitas mudou. Se o resource_show der 404, procure o novo no
-# package_show do pacote acima.
-ID_RECURSO_POR_ANO = {
-    2025: 'b9c229f8-884c-4fa6-85a9-15469172d6a8',
+# ID do recurso (o arquivo CSV) de cada arquivo e ano no dados.es.gov.br,
+# conferidos no package_show do pacote acima em 16/11/2026. O portal já trocou
+# os IDs de Receitas uma vez (em 16/10); se o resource_show der 404, procure o
+# novo no package_show. Os nomes dos arquivos são os de COLUNAS_POR_ARQUIVO,
+# no fim deste arquivo.
+ID_RECURSO_POR_ARQUIVO_E_ANO = {
+    'despesas': {2025: 'b9c229f8-884c-4fa6-85a9-15469172d6a8'},
+    'restos-a-pagar': {2024: '7a9d2ca0-73ff-49da-9429-11548b6d8e0c'},
+    'orcamentos-despesa': {2025: 'c98132b7-a2ce-431f-be7b-1ba5998a62b9'},
+    'orcamentos-execucoes': {2025: '538b6477-dbc6-4183-9b73-adcc18867369'},
 }
 
 # Formato do CSV, o mesmo nos quatro arquivos e em Receitas: ponto e vírgula
