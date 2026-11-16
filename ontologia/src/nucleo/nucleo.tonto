@@ -14,26 +14,30 @@ role EntidadePublica specializes PessoaJuridica
 kind OrgaoPublico {
     codigo: string [1]
     descricao: string [1]
+    sigla: string [0..1]
 
     @componenthood [1..*] --<> [1] (const) EntidadePublica
 }
 
+
+
+/// @pt-br É o agrupamento de serviços subordinados ao mesmo órgão ou repartição a que serão consignadas dotações próprias.
+kind UnidadeDeOrgaoPublico{
+    codigo: string [1]
+    descricao: string [1]
+
+    @componenthood [1..*] --<> [1] (const) OrgaoPublico
+}
+
+
 /// @pt-br Os órgãos orçamentários, por sua vez, correspondem a agrupamentos de unidades orçamentárias. As dotações são consignadas às unidades orçamentárias, responsáveis pela realização das ações.
 /// Cite MCASP - 11º Edicao: Parte Il: Seções 4.2.1
-subkind OrgaoOrcamentario specializes OrgaoPublico{
-
-}
+role OrgaoPublicoOrcamentario specializes OrgaoPublico
 
 /// @pt-br Constitui unidade orçamentária o agrupamento de serviços subordinados ao mesmo órgão ou repartição a que serão consignadas dotações próprias.
 /// Cite LEI No 4.320, DE 17 DE MARÇO DE 1964
-subkind UnidadeOrcamentaria specializes OrgaoPublico{
-
-}
-
-/// @pt-br Hierarquia que representa a estrutura de órgãos e unidades orçamentárias de um Órgão Público.
-disjoint complete genset HierarquiaOrcamentariaDeOrgaoPublico {
-    general OrgaoPublico
-    specifics OrgaoOrcamentario, UnidadeOrcamentaria
+role UnidadeOrcamentaria specializes UnidadeDeOrgaoPublico{
+    @componenthood [1..*] --<> [1] (const) OrgaoPublicoOrcamentario
 }
 
 
@@ -54,28 +58,74 @@ kind PessoaJuridica {
 }
 
 /// @pt-br Unidade territorial usada para agrupar municípios no contexto geográfico da ontologia.
-kind Regiao
+kind Regiao{
+    codigo: const string [1]
+    nome: const string [1]
+}
 
 /// @pt-br Recorte geográfico formado por municípios e vinculado a uma região no modelo.
 kind MicroRegiao {
+    codigo: const string [1]
+    nome: const string [1]
     @componenthood [0..*] --<> [1] (const) Regiao
 }
 
 /// @pt-br Unidade territorial municipal relacionada à região e à microrregião correspondentes.
 kind Municipio {
+    codigo: const string [1]
+    nome: const string [1]
+    
     @componenthood [0..*] --<> [1] (const) Regiao
     @componenthood [0..*] --<> [0..*] (const) MicroRegiao
 }
 
-/// @pt-br Instituição financeira referenciada nos dados do Portal da Transparência.
-kind Banco
+/// @pt-br Considera-se instituição financeira, para efeito desta lei, a pessoa jurídica de direito público ou privado, que tenha como atividade principal ou acessória, cumulativamente ou não, a captação, intermediação ou aplicação de recursos financeiros (Vetado) de terceiros, em moeda nacional ou estrangeira, ou a custódia, emissão, distribuição, negociação, intermediação ou administração de valores mobiliários.
+/// Cite LEI No 7.492, DE 16 DE JUNHO DE 1986.
+/// Na definição da lei é denominado instituição financeira, mas popularmente é conhecido como Banco.
+subkind Banco specializes PessoaJuridica{
+    codigo: const string [1]
+    codigoAgenciaOrigem: const string [1]
+    codigoDomicilioBancarioOrigem: const string [1]
+}
 
 /// @pt-br  Convênios, contratos de repasse e termos de parceria são acordos feitos entre União e entidades governamentais dos demais entes da Federação, ou organizações não-governamentais, para transferência de recursos financeiros a serem utilizados na execução de um objetivo comum. Portanto, as transferências voluntárias e legais serão viabilizadas a partir dos mencionados instrumentos e outros congêneres.
 /// Cite url https://portaldatransparencia.gov.br/entenda-a-gestao-publica/convenios-e-outros-acordos
-kind Convenio
+/// Instrumento que, na ausência de legislação específica, dispõe sobre a transferência de recursos financeiros provenientes do Orçamento Fiscal e da Seguridade Social da União para a execução de programas, projetos e atividades de interesse recíproco e em regime de mútua colaboração;
+/// Cite DECRETO Nº 11.531, DE 16 DE MAIO DE 2023
+kind Convenio{
+    codigo: const string [1]
+}
 
-/// @pt-br Classificação que identifica o Poder da Federação ao qual uma unidade gestora está vinculada.
-datatype PoderDaFederacao
+/// @pt-br Classificação que identifica o Poder da Federação.
+category PoderDaFederacao of functional-complexes{
+    // EXECUTIVO, LEGISLATIVO, JUDICIARIO, DEFENSORIA_PUBLICA
+    codigo: const string [1]
+    descricao: const string [1]
+} 
 
 /// @pt-br Representação de informações pessoais que foram submetidas a processo de anonimização.
-datatype DadosPessoaisAnonimizados
+datatype DadosPessoaisAnonimizados{
+    /// Codigo pode ser cpf, cnpj ou nis
+    codigo: const string [1]
+    nome: const string [1]
+}
+
+/// @pt-br Representação de informações pessoais que foram submetidas a processo de anonimização, mas possui atributos opcionais que detalham os dados.
+datatype DadosPessoaisAnonimizadosExpandido specializes DadosPessoaisAnonimizados{
+ 
+    cargoFuncao: const string [0..1]
+    tipoFavorecido: const string [0..1]
+    idFavorecido: const string [0..1]
+}
+
+/// @pt-br A classificação por fontes ou destinações de recursos (FR) tem como objetivo agrupar receitas que possuam as mesmas normas de aplicação na despesa. Em regra, as fontes ou destinações de recursos reúnem recursos oriundos de determinados códigos da classificação por natureza da receita orçamentária, conforme regras previamente estabelecidas. Por meio do orçamento público, essas fontes ou destinações são associadas a determinadas despesas de forma a evidenciar os meios para atingir os objetivos públicos. Como mecanismo integrador entre a receita e a despesa, o código de FR exerce um duplo papel no processo orçamentário. Para a receita orçamentária, esse código tem a finalidade de indicar a destinação de recursos para a realização de determinadas despesas orçamentárias. Para a despesa orçamentária, identifica a origem dos recursos que estão sendo utilizados.
+/// Cite MCASP - 11º Edicao: Parte I: Seção 5.1
+category FonteOrcamentaria of functional-complexes
+
+
+/// @pt-br Classificação que tem por finalidade identificar se a despesa ou a receita estão inseridas nos orçamentos fiscal, da seguridade social ou de investimento das empresas estatais.
+/// Cite url https://www.congressonacional.leg.br/legislacao-e-publicacoes/glossario-orcamentario/-/orcamentario/termo/classificacao_por_esfera_orcamentaria
+category EsferaOrcamentaria of functional-complexes{
+    codigo: const string [1]
+    descricao: const string [1]
+}
