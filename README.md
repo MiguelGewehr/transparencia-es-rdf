@@ -2,7 +2,7 @@
 
 Coverte as bases de Receitas e Despesas do Portal de Dados Abertos do Espírito Santo ([dados.es.gov.br](https://dados.es.gov.br)) para RDF.
 
-Versão 0.1.0: cabecalho de metadados, Receitas e Despesas, com os arquivos de 2025
+Versão 0.1.0: cabecalho de metadados, Receitas e Despesas, com os arquivos de 2025. Em Despesas, os quatro arquivos que a ontologia descreve: Despesas, Restos a Pagar (o de 2024), Orçamentos de Despesa e Orçamentos de Execuções
 
 ## Contexto
 

@@ -9,9 +9,9 @@ __pycache__/
 # Arquivo que o Finder do Mac cria em cada pasta.
 .DS_Store
 
-dados/*
-!dados/amostra-receitas.csv
-!dados/amostra-despesas.csv
+# Os arquivos inteiros do portal, grandes demais para o git. As amostras, em
+# dados/despesa/amostra/ e dados/receitas/amostra/, ficam no repositório.
+dados/*/bruto/
 
 # Arquivos gerados pelos comandos: dá para gerar de novo a qualquer hora.
 saida/

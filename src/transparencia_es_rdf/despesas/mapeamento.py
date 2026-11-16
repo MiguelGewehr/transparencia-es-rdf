@@ -1,10 +1,14 @@
 """O mapeamento de Despesas: de qual coluna do CSV vem cada atributo, e as
 classes e relações que a ontologia usa para ligar as entidades.
 
-É a tabela que se confere contra o mapeamento da equipe
-(ontologia/mapeamentos/base-despesas/Despesas-2025.csv, commit e0fff39). Os
-dicionários de atributos cobrem 68 das 71 colunas do arquivo, cada coluna uma
-vez só. As outras 3 o mapeamento da equipe deixa sem destino.
+É a tabela que se confere contra o mapeamento da equipe, que tem um arquivo
+para cada arquivo do portal (ontologia/mapeamentos/base-despesas/, commit
+e0fff39). A primeira parte é a do arquivo Despesas; as outras três, a dos
+arquivos RestosAPagar, OrcamentosDespesa e OrcamentosExecucoes, reaproveitam
+as classes e os atributos da primeira quando as colunas são as mesmas.
+
+No arquivo Despesas, os dicionários de atributos cobrem 68 das 71 colunas,
+cada coluna uma vez só. As outras 3 o mapeamento da equipe deixa sem destino.
 
 Os atributos ficam na classe que os declara na ontologia. Por isso o código e
 a descrição da UG e do órgão são de OrgaoPublico, e os dados do favorecido são
@@ -228,5 +232,193 @@ ATRIBUTOS_DO_CONVENIO_RECEBIDO = {
 # 2025, a primeira é sempre "0" e as outras duas vêm sempre vazias.
 COLUNAS_SEM_MAPEAMENTO = ['CodigoFuncionalProgramatica', 'DescricaoElementoDespesa', 'NumeroProcesso']
 
-# Coluna cujo texto vira data e hora (xsd:dateTime), como a ontologia pede.
+# Coluna cujo texto vira data e hora (xsd:dateTime), como a ontologia pede. É
+# a mesma nos arquivos Despesas e OrcamentosExecucoes; os outros dois não têm data.
 COLUNAS_DE_DATA_E_HORA = {'Data'}
+
+
+# ===========================================================================
+# RestosAPagar (13 colunas)
+# ===========================================================================
+#
+# A ontologia liga o registro de restos a pagar ao valor e ao poder. O
+# registro também é um RegistroDeDespesaOrcamentaria, então tem a despesa e a
+# UG; e a classificação, que classifica qualquer registro, o liga à natureza.
+# CpfCnpjNis e Favorecido ficam de fora: o mapeamento da equipe os põe em
+# DadosPessoaisAnonimizados, mas a ontologia não tem uma relação que ligue o
+# registro de restos a pagar a eles (a dadosDoFavorecido é só de
+# RegistroDeDespesa e de RegistroDeOrcamentoDeDespesa).
+
+CLASSE_REGISTRO_RESTOS_A_PAGAR = NAMESPACE_DESPESAS + 'RegistroDeRestosAPagar'
+CLASSE_VALOR_RESTOS_A_PAGAR = NAMESPACE_DESPESAS + 'ValorAtreladoNoRegistroRestosAPagar'
+CLASSE_PODER = NAMESPACE_DESPESAS + 'PoderDaFederacaoNaDespesa'
+
+RELACAO_RESTOS_A_PAGAR_VALOR = propriedade(NAMESPACE_DESPESAS, 'RegistroDeRestosAPagar', 'valorAtrelado')
+RELACAO_RESTOS_A_PAGAR_PODER = propriedade(NAMESPACE_DESPESAS, 'RegistroDeRestosAPagar',
+                                           'mediatesPoderDaFederacaoNaDespesa')
+
+# Registro (1 coluna). RegistroDeRestosAPagar declara o seu próprio idRegistro.
+ATRIBUTOS_DO_REGISTRO_RESTOS_A_PAGAR = {
+    'Id': propriedade(NAMESPACE_DESPESAS, 'RegistroDeRestosAPagar', 'idRegistro'),
+}
+
+# Valor (3 colunas). A ordem é a da URI do valor.
+ATRIBUTOS_DO_VALOR_RESTOS_A_PAGAR = {
+    'ValorNaoProcessado': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoRegistroRestosAPagar', 'valorNaoProcessado'),
+    'ValorProcessado': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoRegistroRestosAPagar', 'valorProcessado'),
+    'ValorNaoProcessadoLiquidado': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoRegistroRestosAPagar',
+                                               'valorNaoProcessadoLiquidado'),
+}
+
+# Poder (2 colunas). Os atributos são de PoderDaFederacao, no núcleo.
+ATRIBUTOS_DO_PODER = {
+    'CodigoPoder': propriedade(NAMESPACE_NUCLEO, 'PoderDaFederacao', 'codigo'),
+    'Poder': propriedade(NAMESPACE_NUCLEO, 'PoderDaFederacao', 'descricao'),
+}
+
+# Natureza (2 colunas). O código vem com 6 dígitos ('339039'), e não com os 2
+# do elemento, como em Despesas ('39'). Ele vai como está para o
+# codigoElementoDespesa, como o mapeamento da equipe pede.
+ATRIBUTOS_DA_NATUREZA_RESTOS_A_PAGAR = {
+    'CodigoElemento': propriedade(NAMESPACE_DESPESAS, 'ClassificadorPorNaturezaDeDespesa', 'codigoElementoDespesa'),
+    'Elemento': propriedade(NAMESPACE_DESPESAS, 'ClassificadorPorNaturezaDeDespesa', 'descricaoElementoDespesa'),
+}
+
+# Ano (1) e UG (2): ATRIBUTOS_DA_DESPESA e ATRIBUTOS_DA_UG, da primeira parte.
+
+COLUNAS_SEM_MAPEAMENTO_RESTOS_A_PAGAR = ['CpfCnpjNis', 'Favorecido']
+
+
+# ===========================================================================
+# OrcamentosDespesa (42 colunas)
+# ===========================================================================
+#
+# O registro do orçamento liga-se ao valor, ao favorecido, à microrregião e
+# ao município. A classificação usa os mesmos classificadores de Despesas, e
+# o classificador institucional liga a classificação à unidade orçamentária
+# (este arquivo não tem a coluna do órgão).
+
+CLASSE_REGISTRO_ORCAMENTO_DESPESA = NAMESPACE_DESPESAS + 'RegistroDeOrcamentoDeDespesa'
+CLASSE_VALOR_ORCAMENTO_DESPESA = NAMESPACE_DESPESAS + 'ValorAtreladoNoOrcamentoDeDespesa'
+CLASSE_FAVORECIDO_DO_ORCAMENTO = NAMESPACE_NUCLEO + 'DadosPessoaisAnonimizados'
+CLASSE_UNIDADE_ORCAMENTARIA = NAMESPACE_DESPESAS + 'UnidadeOrcamentariaNaDespesa'
+CLASSE_MICRORREGIAO = NAMESPACE_DESPESAS + 'MicroRegiaoNaDespesa'
+CLASSE_MUNICIPIO = NAMESPACE_DESPESAS + 'MunicipioNaDespesa'
+
+RELACAO_ORCAMENTO_VALOR = propriedade(NAMESPACE_DESPESAS, 'RegistroDeOrcamentoDeDespesa', 'valorAtrelado')
+RELACAO_ORCAMENTO_FAVORECIDO = propriedade(NAMESPACE_DESPESAS, 'RegistroDeOrcamentoDeDespesa', 'dadosDoFavorecido')
+RELACAO_ORCAMENTO_MICRORREGIAO = propriedade(NAMESPACE_DESPESAS, 'RegistroDeOrcamentoDeDespesa',
+                                             'mediatesMicroRegiaoNaDespesa')
+RELACAO_ORCAMENTO_MUNICIPIO = propriedade(NAMESPACE_DESPESAS, 'RegistroDeOrcamentoDeDespesa',
+                                          'mediatesMunicipioNaDespesa')
+RELACAO_INSTITUCIONAL_UNIDADE_ORCAMENTARIA = propriedade(NAMESPACE_DESPESAS, 'ClassificadorInstitucionalDeDespesa',
+                                                         'mediatesUnidadeOrcamentariaNaDespesa')
+
+# Registro (2 colunas). O mapeamento da equipe põe o Id em
+# RegistroDeOrcamentoDeDespesa.idRegistro, que a ontologia não declara; o
+# idRegistro é o de RegistroDeDespesaOrcamentaria, como em Despesas.
+ATRIBUTOS_DO_REGISTRO_ORCAMENTO_DESPESA = {
+    'Id': propriedade(NAMESPACE_DESPESAS, 'RegistroDeDespesaOrcamentaria', 'idRegistro'),
+    'Emenda': propriedade(NAMESPACE_DESPESAS, 'RegistroDeOrcamentoDeDespesa', 'emenda'),
+}
+
+# Valor (5 colunas). A ordem é a da URI do valor.
+ATRIBUTOS_DO_VALOR_ORCAMENTO_DESPESA = {
+    'DotacaoInicial': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoOrcamentoDeDespesa', 'dotacaoInicial'),
+    'DotacaoAtualizada': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoOrcamentoDeDespesa', 'dotacaoAtualizada'),
+    'DespesaEmpenhada': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoOrcamentoDeDespesa', 'despesaEmpenhada'),
+    'DespesaLiquidada': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoOrcamentoDeDespesa', 'despesaLiquidada'),
+    'DespesaPaga': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoOrcamentoDeDespesa', 'despesaPaga'),
+}
+
+# Favorecido (2 colunas). Aqui o favorecido é só DadosPessoaisAnonimizados,
+# sem os atributos de DadosPessoaisAnonimizadosExpandido.
+ATRIBUTOS_DO_FAVORECIDO_DO_ORCAMENTO = {
+    'CpfCnpjNis': propriedade(NAMESPACE_NUCLEO, 'DadosPessoaisAnonimizados', 'codigo'),
+    'Favorecido': propriedade(NAMESPACE_NUCLEO, 'DadosPessoaisAnonimizados', 'nome'),
+}
+
+# Classificação por estrutura programática (6 colunas): as de Despesas, com o
+# plano orçamentário no lugar do subtítulo.
+ATRIBUTOS_DA_PROGRAMATICA_DO_ORCAMENTO = {
+    'CodigoPrograma': propriedade(NAMESPACE_DESPESAS, 'ClassificadorPorEstruturaProgramaticaDeDespesa', 'codigoPrograma'),
+    'Programa': propriedade(NAMESPACE_DESPESAS, 'ClassificadorPorEstruturaProgramaticaDeDespesa', 'descricaoPrograma'),
+    'CodigoAcao': propriedade(NAMESPACE_DESPESAS, 'ClassificadorPorEstruturaProgramaticaDeDespesa', 'codigoAcao'),
+    'Acao': propriedade(NAMESPACE_DESPESAS, 'ClassificadorPorEstruturaProgramaticaDeDespesa', 'descricaoAcao'),
+    'CodigoPlanoOrcamentario': propriedade(NAMESPACE_DESPESAS, 'ClassificadorPorEstruturaProgramaticaDeDespesa',
+                                           'codigoPlanoOrcamentario'),
+    'PlanoOrcamentario': propriedade(NAMESPACE_DESPESAS, 'ClassificadorPorEstruturaProgramaticaDeDespesa',
+                                     'descricaoPlanoOrcamentario'),
+}
+
+# Fonte (2 colunas): só o código e a descrição da fonte, sem o detalhamento.
+ATRIBUTOS_DA_FONTE_DO_ORCAMENTO = {
+    'CodigoFonte': propriedade(NAMESPACE_DESPESAS, 'FonteDaDespesa', 'codigoFonte'),
+    'Fonte': propriedade(NAMESPACE_DESPESAS, 'FonteDaDespesa', 'descricaoFonte'),
+}
+
+# Esfera (2 colunas). Aqui a descrição vem preenchida, na coluna NomeEsfera.
+ATRIBUTOS_DA_ESFERA_DO_ORCAMENTO = {
+    'Esfera': propriedade(NAMESPACE_NUCLEO, 'EsferaOrcamentaria', 'codigo'),
+    'NomeEsfera': propriedade(NAMESPACE_NUCLEO, 'EsferaOrcamentaria', 'descricao'),
+}
+
+# Unidade orçamentária (2 colunas). UnidadeOrcamentaria especializa
+# UnidadeDeOrgaoPublico, que declara o codigo e a descricao.
+ATRIBUTOS_DA_UNIDADE_ORCAMENTARIA = {
+    'UnidadeOrcamentaria': propriedade(NAMESPACE_NUCLEO, 'UnidadeDeOrgaoPublico', 'codigo'),
+    'NomeUnidadeOrcamentaria': propriedade(NAMESPACE_NUCLEO, 'UnidadeDeOrgaoPublico', 'descricao'),
+}
+
+# Microrregião e município (2 colunas cada).
+ATRIBUTOS_DA_MICRORREGIAO = {
+    'Microregiao': propriedade(NAMESPACE_NUCLEO, 'MicroRegiao', 'codigo'),
+    'NomeMicroregiao': propriedade(NAMESPACE_NUCLEO, 'MicroRegiao', 'nome'),
+}
+ATRIBUTOS_DO_MUNICIPIO = {
+    'Municipio': propriedade(NAMESPACE_NUCLEO, 'Municipio', 'codigo'),
+    'NomeMunicipio': propriedade(NAMESPACE_NUCLEO, 'Municipio', 'nome'),
+}
+
+# Ano (1), UG (2), funcional (4) e natureza (10): os dicionários da primeira
+# parte, porque as colunas têm os mesmos nomes.
+
+
+# ===========================================================================
+# OrcamentosExecucoes (11 colunas)
+# ===========================================================================
+#
+# O registro da execução do orçamento liga-se só ao valor, além da despesa e
+# da UG. O arquivo não tem classificadores, nem a coluna Ano: o ano da despesa
+# sai da coluna Data (conversor_orcamentos_execucoes.py).
+
+CLASSE_REGISTRO_ORCAMENTO_EXECUCAO = NAMESPACE_DESPESAS + 'RegistroDeOrcamentoDeExecucao'
+CLASSE_VALOR_ORCAMENTO_EXECUCAO = NAMESPACE_DESPESAS + 'ValorAtreladoNoOrcamentoDeExecucaoDeDespesa'
+
+RELACAO_EXECUCAO_VALOR = propriedade(NAMESPACE_DESPESAS, 'RegistroDeOrcamentoDeExecucao', 'valorAtrelado')
+
+# Registro (2 colunas). O mapeamento da equipe escreve RegistroDeOrcamentoDeExecucoes,
+# no plural; na ontologia a classe é RegistroDeOrcamentoDeExecucao.
+ATRIBUTOS_DO_REGISTRO_ORCAMENTO_EXECUCAO = {
+    'Id': propriedade(NAMESPACE_DESPESAS, 'RegistroDeDespesaOrcamentaria', 'idRegistro'),
+    'Data': propriedade(NAMESPACE_DESPESAS, 'RegistroDeOrcamentoDeExecucao', 'data'),
+}
+
+# Valor (6 colunas). A ordem é a da URI do valor.
+ATRIBUTOS_DO_VALOR_ORCAMENTO_EXECUCAO = {
+    'ValorEmpenho': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoOrcamentoDeExecucaoDeDespesa', 'valorEmpenho'),
+    'ValorLiquidado': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoOrcamentoDeExecucaoDeDespesa', 'valorLiquidado'),
+    'ValorPago': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoOrcamentoDeExecucaoDeDespesa', 'valorPago'),
+    'ValorRap': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoOrcamentoDeExecucaoDeDespesa', 'valorRap'),
+    'ValorOrcadoInicial': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoOrcamentoDeExecucaoDeDespesa',
+                                      'valorOrcadoInicial'),
+    'ValorOrcado': propriedade(NAMESPACE_DESPESAS, 'ValorAtreladoNoOrcamentoDeExecucaoDeDespesa', 'valorOrcado'),
+}
+
+# UG (3 colunas): as duas de Despesas mais a sigla, que o núcleo declara em
+# OrgaoPublico, como o código e a descrição.
+ATRIBUTOS_DA_UG_COM_SIGLA = {
+    'CodigoUnidadeGestora': unidade_gestora.PROPRIEDADE_CODIGO,
+    'UnidadeGestora': unidade_gestora.PROPRIEDADE_DESCRICAO,
+    'SiglaUnidadeGestora': propriedade(NAMESPACE_NUCLEO, 'OrgaoPublico', 'sigla'),
+}

@@ -2,8 +2,13 @@
 
 Uso:
     transparencia-es-rdf metadados receitas 2025
-    transparencia-es-rdf converter receitas dados/amostra-receitas.csv saida/amostra-receitas.nt
-    transparencia-es-rdf converter despesas dados/amostra-despesas.csv saida/amostra-despesas.nt
+    transparencia-es-rdf converter receitas dados/receitas/amostra/amostra-receitas.csv saida/amostra-receitas.nt
+    transparencia-es-rdf converter despesas dados/despesa/amostra/amostra-despesas.csv saida/amostra-despesas.nt
+    transparencia-es-rdf converter despesas dados/despesa/bruto/RestosAPagar-2024.csv saida/restos-a-pagar-2024.nt.gz
+
+Em Despesas, o mesmo comando converte qualquer um dos quatro arquivos
+(Despesas, RestosAPagar, OrcamentosDespesa e OrcamentosExecucoes): o
+cabeçalho do CSV diz qual é.
 
 Este arquivo só liga as peças: lê o que foi digitado, chama as funções das
 outras pastas na ordem certa e mostra o resultado. Nenhuma regra de RDF mora aqui.
@@ -17,10 +22,12 @@ from pathlib import Path
 from transparencia_es_rdf.config import PASTA_SAIDA
 from transparencia_es_rdf.despesas import arquivo as arquivo_despesas
 from transparencia_es_rdf.despesas import conversor as conversor_despesas
+from transparencia_es_rdf.despesas import conversor_orcamentos_despesa, conversor_orcamentos_execucoes
+from transparencia_es_rdf.despesas import conversor_restos_a_pagar
 from transparencia_es_rdf.metadados.cabecalho import montar_cabecalho
 from transparencia_es_rdf.metadados.uris import montar_uris
 from transparencia_es_rdf.portal.api import buscar_pacote, buscar_recurso
-from transparencia_es_rdf.portal.leitura import ler_linhas
+from transparencia_es_rdf.portal.leitura import ler_cabecalho, ler_linhas
 from transparencia_es_rdf.rdf.ntriples import abrir_saida
 from transparencia_es_rdf.receitas import arquivo as arquivo_receitas
 from transparencia_es_rdf.receitas import conversor as conversor_receitas
@@ -34,6 +41,15 @@ ARQUIVO_DA_BASE = {
 CONVERSOR_DA_BASE = {
     'despesas': conversor_despesas,
     'receitas': conversor_receitas,
+}
+
+# Os quatro arquivos de Despesas, cada um com o seu conversor. Os nomes são os
+# de despesas/arquivo.py.
+CONVERSOR_DO_ARQUIVO_DE_DESPESAS = {
+    'despesas': conversor_despesas,
+    'restos-a-pagar': conversor_restos_a_pagar,
+    'orcamentos-despesa': conversor_orcamentos_despesa,
+    'orcamentos-execucoes': conversor_orcamentos_execucoes,
 }
 
 
@@ -68,10 +84,18 @@ def converter(nome_base: str, entrada: Path, saida: Path) -> dict:
         raise SystemExit(f'Arquivo não encontrado: {entrada}')
 
     arquivo_da_base = ARQUIVO_DA_BASE[nome_base]
-    conversor_da_base = CONVERSOR_DA_BASE[nome_base]
+    if nome_base == 'despesas':
+        # Despesas tem quatro arquivos: o cabeçalho diz qual é este.
+        cabecalho = ler_cabecalho(entrada, arquivo_da_base.SEPARADOR, arquivo_da_base.CODIFICACAO)
+        nome_do_arquivo = arquivo_da_base.identificar_arquivo(cabecalho)
+        colunas = arquivo_da_base.COLUNAS_POR_ARQUIVO[nome_do_arquivo]
+        conversor_da_base = CONVERSOR_DO_ARQUIVO_DE_DESPESAS[nome_do_arquivo]
+        print(f'Arquivo de Despesas: {nome_do_arquivo}')
+    else:
+        colunas = arquivo_da_base.COLUNAS
+        conversor_da_base = CONVERSOR_DA_BASE[nome_base]
 
-    linhas = ler_linhas(entrada, arquivo_da_base.COLUNAS, arquivo_da_base.SEPARADOR,
-                        arquivo_da_base.CODIFICACAO)
+    linhas = ler_linhas(entrada, colunas, arquivo_da_base.SEPARADOR, arquivo_da_base.CODIFICACAO)
     inicio = time.perf_counter()
     with abrir_saida(saida) as destino:
         relatorio = conversor_da_base.converter_linhas(linhas, destino)
@@ -113,7 +137,7 @@ def main() -> None:
     comando_converter.add_argument('base', choices=sorted(CONVERSOR_DA_BASE),
                                    help='nome da base, ex.: receitas')
     comando_converter.add_argument('entrada', type=Path,
-                                   help='CSV de entrada, ex.: dados/amostra-receitas.csv')
+                                   help='CSV de entrada, ex.: dados/receitas/amostra/amostra-receitas.csv')
     comando_converter.add_argument('saida', type=Path,
                                    help='arquivo N-Triples de saída; se terminar em .gz, sai compactado')
 
