@@ -27,12 +27,12 @@ URIs que no arquivo Despesas, então são as mesmas entidades no grafo.
 from transparencia_es_rdf.despesas import comum, mapeamento, uris
 from transparencia_es_rdf.nucleo.fonte import uri_da_fonte
 from transparencia_es_rdf.nucleo.unidade_gestora import uri_da_unidade_gestora
-from transparencia_es_rdf.rdf.escrita import relatorio_comum
+from transparencia_es_rdf.rdf.escrita import montar_relatorio
 
 NOME_DO_ARQUIVO = 'orcamentos-despesa'
 
 
-def converter_linha(estado: dict, linha: dict) -> None:
+def _converter_linha(estado: dict, linha: dict) -> None:
     """Escreve tudo o que uma linha do CSV descreve."""
     estado['linhas_lidas'] += 1
     linha = comum.preparar_linha(linha, mapeamento.ATRIBUTOS_DO_VALOR_ORCAMENTO_DESPESA)
@@ -63,14 +63,16 @@ def converter_linha(estado: dict, linha: dict) -> None:
                                      mapeamento.ATRIBUTOS_DO_VALOR_ORCAMENTO_DESPESA)
 
     # 2. As entidades que existem uma vez por linha: a despesa e o registro...
-    uri_registro = comum.escrever_registro(estado, NOME_DO_ARQUIVO, linha,
-                                           mapeamento.CLASSE_REGISTRO_ORCAMENTO_DESPESA,
-                                           mapeamento.ATRIBUTOS_DO_REGISTRO_ORCAMENTO_DESPESA, uris_da_linha['ug'], [
+    ligacoes_do_registro = [
         (mapeamento.RELACAO_ORCAMENTO_VALOR, uri_valor),
         (mapeamento.RELACAO_ORCAMENTO_FAVORECIDO, uris_da_linha['favorecido']),
         (mapeamento.RELACAO_ORCAMENTO_MICRORREGIAO, uris_da_linha['microrregiao']),
         (mapeamento.RELACAO_ORCAMENTO_MUNICIPIO, uris_da_linha['municipio']),
-    ])
+    ]
+    uri_registro = comum.escrever_registro(estado, NOME_DO_ARQUIVO, linha,
+                                           mapeamento.CLASSE_REGISTRO_ORCAMENTO_DESPESA,
+                                           mapeamento.ATRIBUTOS_DO_REGISTRO_ORCAMENTO_DESPESA, uris_da_linha['ug'],
+                                           ligacoes_do_registro)
 
     # ... a classificação, com os cinco classificadores...
     uri_classificacao = comum.escrever_classificacao(estado, NOME_DO_ARQUIVO, linha, uri_registro, [
@@ -92,5 +94,5 @@ def converter_linhas(linhas, destino) -> dict:
     """Converte todas as linhas e devolve o relatório com as contagens."""
     estado = comum.criar_estado(destino)
     for linha in linhas:
-        converter_linha(estado, linha)
-    return relatorio_comum(estado)
+        _converter_linha(estado, linha)
+    return montar_relatorio(estado)

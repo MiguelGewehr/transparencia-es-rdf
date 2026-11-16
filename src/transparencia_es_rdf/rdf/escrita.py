@@ -1,3 +1,11 @@
+"""A escrita de triplas que as conversões das duas bases usam.
+
+O estado é um dicionário que a conversão carrega de uma linha para a outra:
+o destino aberto, as contagens do relatório e o que já foi escrito, para que
+uma entidade que muitas linhas repetem (uma UG, uma fonte) seja escrita uma
+vez só. Cada base acrescenta ao estado o que só ela precisa lembrar.
+"""
+
 from collections import Counter
 
 from transparencia_es_rdf.rdf.ntriples import (escrever_tripla, literal_de_data_e_hora, literal_de_texto, uri)
@@ -22,11 +30,11 @@ def escrever(estado: dict, sujeito: str, predicado: str, objeto: str) -> None:
     escrever_tripla(estado['destino'], sujeito, predicado, objeto)
     estado['triplas_escritas'] += 1
     if predicado == RDF_TYPE:
-        classe = objeto[1:-1]                             
+        classe = objeto[1:-1]                             # tira os < >
         estado['entidades_por_classe'][classe] += 1
 
 
-def escrever_uma_vez(estado: dict, sujeito: str, predicado: str, objeto: str) -> None:
+def _escrever_uma_vez(estado: dict, sujeito: str, predicado: str, objeto: str) -> None:
     """Como escrever(), mas pula a tripla se ela já foi escrita antes."""
     tripla = (sujeito, predicado, objeto)
     if tripla in estado['triplas_compartilhadas_escritas']:
@@ -75,13 +83,13 @@ def escrever_entidade_compartilhada(estado: dict, uri_entidade: str, classe: str
         return
     estado['entidades_vistas'].add(assinatura)
 
-    escrever_uma_vez(estado, uri_entidade, RDF_TYPE, uri(classe))
+    _escrever_uma_vez(estado, uri_entidade, RDF_TYPE, uri(classe))
     for propriedade_do_atributo, literal in atributos_preenchidos(estado, atributos, linha):
-        escrever_uma_vez(estado, uri_entidade, propriedade_do_atributo, literal)
+        _escrever_uma_vez(estado, uri_entidade, propriedade_do_atributo, literal)
 
 
-def relatorio_comum(estado: dict) -> dict:
-    """As contagens que o cli.py mostra no fim, com o nome curto de cada classe.
+def montar_relatorio(estado: dict) -> dict:
+    """As contagens que o comando converter mostra no fim, com o nome curto de cada classe.
 
     O nome curto é o que vem depois do "#" na URI da classe:
     .../base-receitas#ContaContabil vira ContaContabil.

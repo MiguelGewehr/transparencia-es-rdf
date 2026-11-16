@@ -13,12 +13,12 @@ No arquivo de 2025, as 125 linhas têm a mesma data, 01/01/2025.
 
 from transparencia_es_rdf.despesas import comum, mapeamento
 from transparencia_es_rdf.nucleo.unidade_gestora import uri_da_unidade_gestora
-from transparencia_es_rdf.rdf.escrita import relatorio_comum
+from transparencia_es_rdf.rdf.escrita import montar_relatorio
 
 NOME_DO_ARQUIVO = 'orcamentos-execucoes'
 
 
-def converter_linha(estado: dict, linha: dict) -> None:
+def _converter_linha(estado: dict, linha: dict) -> None:
     """Escreve tudo o que uma linha do CSV descreve."""
     estado['linhas_lidas'] += 1
     linha = comum.preparar_linha(linha, mapeamento.ATRIBUTOS_DO_VALOR_ORCAMENTO_EXECUCAO)
@@ -35,15 +35,15 @@ def converter_linha(estado: dict, linha: dict) -> None:
                                      mapeamento.ATRIBUTOS_DO_VALOR_ORCAMENTO_EXECUCAO)
 
     # 2. As entidades que existem uma vez por linha: a despesa e o registro.
+    ligacoes_do_registro = [(mapeamento.RELACAO_EXECUCAO_VALOR, uri_valor)]
     comum.escrever_registro(estado, NOME_DO_ARQUIVO, linha, mapeamento.CLASSE_REGISTRO_ORCAMENTO_EXECUCAO,
-                            mapeamento.ATRIBUTOS_DO_REGISTRO_ORCAMENTO_EXECUCAO, uris_da_linha['ug'], [
-        (mapeamento.RELACAO_EXECUCAO_VALOR, uri_valor),
-    ])
+                            mapeamento.ATRIBUTOS_DO_REGISTRO_ORCAMENTO_EXECUCAO, uris_da_linha['ug'],
+                            ligacoes_do_registro)
 
 
 def converter_linhas(linhas, destino) -> dict:
     """Converte todas as linhas e devolve o relatório com as contagens."""
     estado = comum.criar_estado(destino)
     for linha in linhas:
-        converter_linha(estado, linha)
-    return relatorio_comum(estado)
+        _converter_linha(estado, linha)
+    return montar_relatorio(estado)

@@ -1,5 +1,20 @@
+"""O mapeamento de Receitas: de qual coluna do CSV vem cada atributo, e as
+classes e relações que a ontologia usa para ligar as entidades.
+
+É a tabela que se confere contra o mapeamento da equipe
+(ontologia/mapeamentos/base-receitas/Receitas-2025.csv). O nome de cada
+atributo é o da própria coluna: a coluna documento vira
+ReceitaOrcamentariaRegistrada.documento. As exceções são a conta contábil e
+as UGs, cujos atributos se chamam codigo e descricao (os da UG são os de
+OrgaoPublico, no núcleo; ver nucleo/unidade_gestora.py).
+"""
+
 from transparencia_es_rdf.nucleo import unidade_gestora
 from transparencia_es_rdf.rdf.vocabularios import NAMESPACE_RECEITAS, propriedade
+
+# ---------------------------------------------------------------------------
+# Classes: o tipo (rdf:type) de cada entidade.
+# ---------------------------------------------------------------------------
 
 CLASSE_RECEITA = NAMESPACE_RECEITAS + 'ReceitaOrcamentariaRegistrada'
 CLASSE_REGISTRO = NAMESPACE_RECEITAS + 'RegistroDeReceitaOrcamentaria'
@@ -11,6 +26,10 @@ CLASSE_CONTA = NAMESPACE_RECEITAS + 'ContaContabil'
 CLASSE_UG_EMITENTE = NAMESPACE_RECEITAS + 'UnidadeGestoraEmitenteDeReceita'
 CLASSE_UG_BENEFICIADA = NAMESPACE_RECEITAS + 'UnidadeGestoraBeneficiadaDeReceita'
 
+# ---------------------------------------------------------------------------
+# Relações: as propriedades que ligam uma entidade a outra.
+# ---------------------------------------------------------------------------
+
 RELACAO_TEM_RECEITA = propriedade(NAMESPACE_RECEITAS, 'RegistroDeReceitaOrcamentaria', 'temReceitaOrcamentaria')
 RELACAO_TEM_UG_EMITENTE = propriedade(NAMESPACE_RECEITAS, 'RegistroDeReceitaOrcamentaria', 'temUnidadeGestoraEmitenteDeReceita')
 RELACAO_TEM_UG_BENEFICIADA = propriedade(NAMESPACE_RECEITAS, 'RegistroDeReceitaOrcamentaria', 'temUnidadeGestoraBeneficiadaDeReceita')
@@ -20,9 +39,12 @@ RELACAO_NATUREZA = propriedade(NAMESPACE_RECEITAS, 'ClassificacaoDoRegistroDeRec
 RELACAO_FONTE = propriedade(NAMESPACE_RECEITAS, 'ClassificacaoDoRegistroDeReceitaOrcamentaria', 'fonteClassificadaPor')
 RELACAO_CONTA = propriedade(NAMESPACE_RECEITAS, 'ClassificacaoDoRegistroDeReceitaOrcamentaria', 'contabilClassificadaPor')
 
+# ---------------------------------------------------------------------------
+# Atributos: coluna do CSV -> propriedade do atributo.
+# ---------------------------------------------------------------------------
 
 ATRIBUTOS_DA_RECEITA = {
-    coluna : propriedade(NAMESPACE_RECEITAS, 'ReceitaOrcamentariaRegistrada', coluna)
+    coluna: propriedade(NAMESPACE_RECEITAS, 'ReceitaOrcamentariaRegistrada', coluna)
     for coluna in ['documento', 'dataEmissao', 'ano']
 }
 
@@ -81,4 +103,5 @@ ATRIBUTOS_DA_UG_BENEFICIADA = {
     'descricaoUG': unidade_gestora.PROPRIEDADE_DESCRICAO,
 }
 
+# As colunas que viram xsd:dateTime; as outras viram texto.
 COLUNAS_DE_DATA_E_HORA = {'dataEmissao', 'dataContabilizacao'}

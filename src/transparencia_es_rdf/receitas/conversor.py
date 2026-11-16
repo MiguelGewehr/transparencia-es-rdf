@@ -24,13 +24,13 @@ from decimal import Decimal
 from transparencia_es_rdf.nucleo.fonte import uri_da_fonte
 from transparencia_es_rdf.nucleo.unidade_gestora import uri_da_unidade_gestora
 from transparencia_es_rdf.rdf.escrita import (atributos_preenchidos, criar_estado_comum, escrever,
-                                              escrever_entidade_compartilhada, relatorio_comum)
+                                              escrever_entidade_compartilhada, montar_relatorio)
 from transparencia_es_rdf.rdf.ntriples import literal_de_decimal, uri
 from transparencia_es_rdf.rdf.vocabularios import RDF_TYPE
 from transparencia_es_rdf.receitas import mapeamento, uris
 
 
-def criar_estado(destino) -> dict:
+def _criar_estado(destino) -> dict:
     """O estado comum (rdf/escrita.py) mais o que só Receitas precisa lembrar."""
     estado = criar_estado_comum(destino, mapeamento.COLUNAS_DE_DATA_E_HORA)
     estado['registros_escritos'] = set()             # identificadores dos registros
@@ -40,12 +40,12 @@ def criar_estado(destino) -> dict:
     return estado
 
 
-def escrever_registro_e_classificacao(estado: dict, linha: dict, identificador: str,
-                                      uris_da_linha: dict) -> str:
+def _escrever_registro_e_classificacao(estado: dict, linha: dict, identificador: str,
+                                       uris_da_linha: dict) -> str:
     """Escreve o registro e a classificação dele, só na primeira linha do registro.
 
     Várias linhas podem ser do mesmo registro (mudam só os valores). Nas outras
-    linhas, só o valor é acrescentado (escrever_valor_do_registro).
+    linhas, só o valor é acrescentado (_escrever_valor_do_registro).
     """
     ano = linha['ano']
     uri_registro = uris.uri_do_registro(ano, identificador)
@@ -71,8 +71,8 @@ def escrever_registro_e_classificacao(estado: dict, linha: dict, identificador: 
     return uri_registro
 
 
-def escrever_valor_do_registro(estado: dict, linha: dict, identificador: str,
-                               uri_registro: str) -> None:
+def _escrever_valor_do_registro(estado: dict, linha: dict, identificador: str,
+                                uri_registro: str) -> None:
     """Escreve o conjunto de dez números da linha e liga o registro a ele."""
     numeros = [Decimal(linha[coluna]) for coluna in mapeamento.COLUNAS_DOS_VALORES]
     chave = uris.chave_do_valor(numeros)
@@ -95,7 +95,7 @@ def escrever_valor_do_registro(estado: dict, linha: dict, identificador: str,
     escrever(estado, uri_registro, mapeamento.RELACAO_TEM_VALOR, uri(uri_valor))
 
 
-def converter_linha(estado: dict, linha: dict) -> None:
+def _converter_linha(estado: dict, linha: dict) -> None:
     """Escreve tudo o que uma linha do CSV descreve."""
     estado['linhas_lidas'] += 1
 
@@ -123,18 +123,18 @@ def converter_linha(estado: dict, linha: dict) -> None:
 
     # 2. O registro e a sua classificação (só na primeira linha do registro).
     identificador = uris.identificador_do_registro(linha)
-    uri_registro = escrever_registro_e_classificacao(estado, linha, identificador, uris_da_linha)
+    uri_registro = _escrever_registro_e_classificacao(estado, linha, identificador, uris_da_linha)
 
     # 3. O valor da linha, ligado ao registro.
-    escrever_valor_do_registro(estado, linha, identificador, uri_registro)
+    _escrever_valor_do_registro(estado, linha, identificador, uri_registro)
 
 
 def converter_linhas(linhas, destino) -> dict:
     """Converte todas as linhas e devolve o relatório com as contagens."""
-    estado = criar_estado(destino)
+    estado = _criar_estado(destino)
     for linha in linhas:
-        converter_linha(estado, linha)
+        _converter_linha(estado, linha)
 
-    relatorio = relatorio_comum(estado)
+    relatorio = montar_relatorio(estado)
     relatorio['linhas_repetidas'] = estado['linhas_repetidas']
     return relatorio

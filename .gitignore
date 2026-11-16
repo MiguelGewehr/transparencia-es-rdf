@@ -10,7 +10,7 @@ __pycache__/
 .DS_Store
 
 # Os arquivos inteiros do portal, grandes demais para o git. As amostras, em
-# dados/despesa/amostra/ e dados/receitas/amostra/, ficam no repositório.
+# dados/despesas/amostra/ e dados/receitas/amostra/, ficam no repositório.
 dados/*/bruto/
 
 # Arquivos gerados pelos comandos: dá para gerar de novo a qualquer hora.

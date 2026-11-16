@@ -1,7 +1,14 @@
+"""As URIs que o cabeçalho de metadados descreve.
+
+O pacote e a distribuição são páginas do próprio portal. O grafo é o conjunto
+de triplas gerado pela ferramenta, identificado pelo ID do recurso convertido.
+"""
+
 from transparencia_es_rdf.config import URL_BASE_DADOS, URL_PORTAL, VERSAO_GRAFO
 
-def montar_uris(recurso: dict, nome_base: str) -> dict[str, str]:
 
+def montar_uris(recurso: dict, nome_base: str) -> dict[str, str]:
+    """As quatro URIs do cabeçalho, a partir da resposta do resource_show."""
     id_pacote = recurso['package_id']
     id_recurso = recurso['id']
 

@@ -1,6 +1,6 @@
 """O que os conversores dos quatro arquivos de Despesas fazem do mesmo jeito.
 
-Cada arquivo tem o seu conversor: conversor.py para o arquivo Despesas e
+Cada arquivo tem o seu conversor: conversor_despesas.py para o arquivo Despesas e
 conversor_restos_a_pagar.py, conversor_orcamentos_despesa.py e
 conversor_orcamentos_execucoes.py para os outros três. Todo registro, de
 qualquer um dos quatro arquivos, tem uma despesa, uma UG e um valor, e três
@@ -17,6 +17,7 @@ from transparencia_es_rdf.rdf.escrita import (atributos_preenchidos, criar_estad
                                               escrever_entidade_compartilhada)
 from transparencia_es_rdf.rdf.ntriples import literal_de_decimal, uri
 from transparencia_es_rdf.rdf.vocabularios import RDF_TYPE
+
 
 def criar_estado(destino) -> dict:
     """O estado comum (rdf/escrita.py) mais o que só Despesas precisa lembrar."""
@@ -94,7 +95,7 @@ def escrever_valor(estado: dict, linha: dict, tipo_do_valor: str, classe: str, a
     return uri_valor
 
 
-def escrever_ligacoes(estado: dict, uri_sujeito: str, ligacoes: list[tuple[str, str | None]]) -> None:
+def _escrever_ligacoes(estado: dict, uri_sujeito: str, ligacoes: list[tuple[str, str | None]]) -> None:
     """Escreve cada par (propriedade, URI da entidade), pulando os que têm URI None."""
     for relacao, uri_entidade in ligacoes:
         if uri_entidade is not None:
@@ -123,7 +124,7 @@ def escrever_registro(estado: dict, nome_do_arquivo: str, linha: dict, classe_do
         (mapeamento.RELACAO_TEM_DESPESA, uri_despesa),
         (mapeamento.RELACAO_TEM_UG, uri_ug),
     ] + outras_ligacoes
-    escrever_ligacoes(estado, uri_registro, ligacoes)
+    _escrever_ligacoes(estado, uri_registro, ligacoes)
     return uri_registro
 
 
@@ -137,7 +138,7 @@ def escrever_classificacao(estado: dict, nome_do_arquivo: str, linha: dict, uri_
     uri_classificacao = uris.uri_por_linha(nome_do_arquivo, linha, 'classificacao')
     escrever(estado, uri_classificacao, RDF_TYPE, uri(mapeamento.CLASSE_CLASSIFICACAO))
     escrever(estado, uri_classificacao, mapeamento.RELACAO_CLASSIFICA, uri(uri_registro))
-    escrever_ligacoes(estado, uri_classificacao, classificadores)
+    _escrever_ligacoes(estado, uri_classificacao, classificadores)
     return uri_classificacao
 
 
@@ -152,4 +153,4 @@ def escrever_classificador_institucional(estado: dict, nome_do_arquivo: str, lin
     uri_institucional = uris.uri_por_linha(nome_do_arquivo, linha, 'classificador-institucional')
     escrever(estado, uri_institucional, RDF_TYPE, uri(mapeamento.CLASSE_CLASSIFICADOR_INSTITUCIONAL))
     escrever(estado, uri_institucional, mapeamento.RELACAO_INSTITUCIONAL_CLASSIFICACAO, uri(uri_classificacao))
-    escrever_ligacoes(estado, uri_institucional, ligacoes)
+    _escrever_ligacoes(estado, uri_institucional, ligacoes)
