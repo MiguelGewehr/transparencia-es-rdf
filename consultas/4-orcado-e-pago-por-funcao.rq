@@ -1,0 +1,34 @@
+# Dotação atualizada (OrcamentosDespesa), valor pago (Despesas) e a parte paga da dotação, por função de governo.
+# Os dois arquivos se ligam pelo código da função (codigoFuncao) do classificador funcional.
+PREFIX desp: <https://example.org/ontologia-portal-transparencia-es/base-despesas#>
+
+SELECT ?codigo ?funcao ?dotacao_atualizada ?paga
+       (ROUND(1000 * COALESCE(?paga, 0) / ?dotacao_atualizada) / 10 AS ?pago_pct) WHERE {
+  {
+    SELECT ?codigo (SUM(?valor) AS ?dotacao_atualizada) WHERE {
+      ?classificacao desp:ClassificacaoDoRegistroDeDespesaOrcamentaria.funcionalClassificadaPor ?funcional ;
+                     desp:ClassificacaoDoRegistroDeDespesaOrcamentaria.classifica ?registro .
+      ?funcional desp:ClassificadorFuncionalDeDespesa.codigoFuncao ?codigo .
+      ?registro a desp:RegistroDeOrcamentoDeDespesa ;
+                desp:RegistroDeOrcamentoDeDespesa.valorAtrelado ?v .
+      ?v desp:ValorAtreladoNoOrcamentoDeDespesa.dotacaoAtualizada ?valor .
+    } GROUP BY ?codigo
+  }
+  OPTIONAL {
+    SELECT ?codigo (SUM(?valor) AS ?paga) WHERE {
+      ?classificacao desp:ClassificacaoDoRegistroDeDespesaOrcamentaria.funcionalClassificadaPor ?funcional ;
+                     desp:ClassificacaoDoRegistroDeDespesaOrcamentaria.classifica ?registro .
+      ?funcional desp:ClassificadorFuncionalDeDespesa.codigoFuncao ?codigo .
+      ?registro a desp:RegistroDeDespesa ;
+                desp:RegistroDeDespesa.valorAtrelado ?v .
+      ?v desp:ValorAtreladoNoRegistroDeDespesa.valorPago ?valor .
+    } GROUP BY ?codigo
+  }
+  OPTIONAL {
+    SELECT ?codigo (SAMPLE(?descricao) AS ?funcao) WHERE {
+      ?f desp:ClassificadorFuncionalDeDespesa.codigoFuncao ?codigo ;
+         desp:ClassificadorFuncionalDeDespesa.descricaoFuncao ?descricao .
+    } GROUP BY ?codigo
+  }
+}
+ORDER BY DESC(?dotacao_atualizada)

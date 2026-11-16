@@ -1,0 +1,19 @@
+# Quantas UGs e quantas fontes aparecem em cada base, quantas aparecem nas duas com a mesma URI
+# e a cobertura: a parte das UGs (ou fontes) de Receitas que também aparece em Despesas.
+PREFIX rec: <https://example.org/ontologia-portal-transparencia-es/base-receitas#>
+PREFIX desp: <https://example.org/ontologia-portal-transparencia-es/base-despesas#>
+
+SELECT ?tipo (COUNT(DISTINCT ?d) AS ?em_despesas) (COUNT(DISTINCT ?r) AS ?em_receitas) (COUNT(DISTINCT ?comum) AS ?nas_duas)
+       (ROUND(1000 * COUNT(DISTINCT ?comum) / COUNT(DISTINCT ?r)) / 10 AS ?cobertura_receitas_pct) WHERE {
+  {
+    BIND("UG" AS ?tipo)
+    { ?d a desp:UnidadeGestoraNaDespesa }
+    UNION { ?r a rec:UnidadeGestoraEmitenteDeReceita } UNION { ?r a rec:UnidadeGestoraBeneficiadaDeReceita }
+    UNION { ?comum a desp:UnidadeGestoraNaDespesa .
+            { ?comum a rec:UnidadeGestoraEmitenteDeReceita } UNION { ?comum a rec:UnidadeGestoraBeneficiadaDeReceita } }
+  } UNION {
+    BIND("fonte" AS ?tipo)
+    { ?d a desp:FonteDaDespesa } UNION { ?r a rec:FonteDaReceita } UNION { ?comum a desp:FonteDaDespesa, rec:FonteDaReceita }
+  }
+}
+GROUP BY ?tipo

@@ -1,0 +1,27 @@
+# Confere o valor pago de cada UG nos dois arquivos que o trazem:
+# OrcamentosExecucoes (um total por UG, publicado pelo portal) e Despesas (uma linha por pagamento).
+# A UG tem a mesma URI nos dois, então a junção sai direto pela URI.
+PREFIX desp: <https://example.org/ontologia-portal-transparencia-es/base-despesas#>
+
+SELECT (COUNT(?ug) AS ?ugs_em_execucoes)
+       (COUNT(?pago_despesas) AS ?ugs_tambem_em_despesas)
+       (SUM(IF(?pago_execucoes = COALESCE(?pago_despesas, 0), 1, 0)) AS ?ugs_com_o_mesmo_valor)
+       (SUM(?pago_execucoes) AS ?total_pago_execucoes)
+       (SUM(COALESCE(?pago_despesas, 0)) AS ?total_pago_despesas) WHERE {
+  {
+    SELECT ?ug (SUM(?valor) AS ?pago_execucoes) WHERE {
+      ?registro a desp:RegistroDeOrcamentoDeExecucao ;
+                desp:RegistroDeDespesaOrcamentaria.temUnidadeGestoraDaDespesa ?ug ;
+                desp:RegistroDeOrcamentoDeExecucao.valorAtrelado ?v .
+      ?v desp:ValorAtreladoNoOrcamentoDeExecucaoDeDespesa.valorPago ?valor .
+    } GROUP BY ?ug
+  }
+  OPTIONAL {
+    SELECT ?ug (SUM(?valor) AS ?pago_despesas) WHERE {
+      ?registro a desp:RegistroDeDespesa ;
+                desp:RegistroDeDespesaOrcamentaria.temUnidadeGestoraDaDespesa ?ug ;
+                desp:RegistroDeDespesa.valorAtrelado ?v .
+      ?v desp:ValorAtreladoNoRegistroDeDespesa.valorPago ?valor .
+    } GROUP BY ?ug
+  }
+}

@@ -8,6 +8,8 @@ Uso (na raiz do repositório):
     transparencia-es-rdf metadados despesas 2024 --arquivo restos-a-pagar
     transparencia-es-rdf formas despesas
     transparencia-es-rdf validar despesas dados/despesas/amostra/amostra-despesas.csv
+    transparencia-es-rdf carregar saida/rdf/receitas-2025.nt.gz saida/rdf/despesas-2025.nt.gz
+    transparencia-es-rdf consultar consultas/*.rq
 
 Em Despesas, o mesmo comando converte e valida qualquer um dos quatro
 arquivos (Despesas, RestosAPagar, OrcamentosDespesa e OrcamentosExecucoes):
@@ -23,7 +25,8 @@ import time
 from datetime import date
 from pathlib import Path
 
-from transparencia_es_rdf.config import PASTA_FORMAS, PASTA_METADADOS, PASTA_VALIDACAO
+from transparencia_es_rdf.config import (PASTA_BANCO, PASTA_FORMAS, PASTA_METADADOS,
+                                         PASTA_RESULTADOS_DAS_CONSULTAS, PASTA_VALIDACAO)
 from transparencia_es_rdf.despesas import arquivo as arquivo_despesas
 from transparencia_es_rdf.despesas import (conversor_despesas, conversor_orcamentos_despesa,
                                            conversor_orcamentos_execucoes, conversor_restos_a_pagar)
@@ -35,6 +38,7 @@ from transparencia_es_rdf.rdf.ntriples import abrir_saida
 from transparencia_es_rdf.rdf.turtle import gravar_em_turtle
 from transparencia_es_rdf.receitas import arquivo as arquivo_receitas
 from transparencia_es_rdf.receitas import conversor as conversor_receitas
+from transparencia_es_rdf.sparql.banco import carregar, consultar
 from transparencia_es_rdf.validacao.formas import gerar_formas, ler_ontologia
 from transparencia_es_rdf.validacao.validador import validar_linhas
 
@@ -186,6 +190,45 @@ def _validar(nome_base: str, entrada: Path, linhas_por_lote: int) -> None:
     print(f'Resumo gravado em {caminho}')
 
 
+def _carregar_banco(arquivos: list[Path]) -> None:
+    """Carrega os N-Triples num banco novo, em saida/banco/, para o comando consultar."""
+    for arquivo in arquivos:
+        if not arquivo.is_file():
+            raise SystemExit(f'Arquivo não encontrado: {arquivo}')
+
+    inicio = time.perf_counter()
+    quantidade = carregar(arquivos, PASTA_BANCO)
+    segundos = time.perf_counter() - inicio
+    print(f'{_milhares(quantidade)} triplas carregadas em {PASTA_BANCO} ({segundos:.0f} s)')
+
+
+def _consultar_banco(arquivos_de_consulta: list[Path]) -> None:
+    """Roda cada consulta no banco, mostra o resultado e grava em saida/consultas/<nome da consulta>.csv."""
+    if not PASTA_BANCO.is_dir():
+        raise SystemExit('O banco ainda não existe. Rode antes o comando carregar.')
+    PASTA_RESULTADOS_DAS_CONSULTAS.mkdir(parents=True, exist_ok=True)
+
+    for arquivo_de_consulta in arquivos_de_consulta:
+        if not arquivo_de_consulta.is_file():
+            raise SystemExit(f'Arquivo não encontrado: {arquivo_de_consulta}')
+
+        inicio = time.perf_counter()
+        colunas, linhas = consultar(PASTA_BANCO, arquivo_de_consulta.read_text(encoding='utf-8'))
+        segundos = time.perf_counter() - inicio
+
+        print(f'\n{arquivo_de_consulta.name}: {_milhares(len(linhas))} linha(s) ({segundos:.0f} s)')
+        print(' | '.join(colunas))
+        for linha in linhas:
+            print(' | '.join(linha))
+
+        caminho = PASTA_RESULTADOS_DAS_CONSULTAS / f'{arquivo_de_consulta.stem}.csv'
+        with open(caminho, 'w', newline='', encoding='utf-8') as arquivo_csv:
+            escritor = csv.writer(arquivo_csv)
+            escritor.writerow(colunas)
+            escritor.writerows(linhas)
+        print(f'Resultado gravado em {caminho}')
+
+
 def main() -> None:
     """Lê o que foi digitado no terminal e chama o comando pedido."""
     parser = argparse.ArgumentParser(
@@ -229,6 +272,16 @@ def main() -> None:
     comando_validar.add_argument('--linhas-por-lote', type=int, default=10_000,
                                  help='linhas do CSV validadas de uma vez (padrão: 10000)')
 
+    comando_carregar = subcomandos.add_parser(
+        'carregar', help='carrega arquivos N-Triples num banco novo, para o comando consultar')
+    comando_carregar.add_argument('arquivos', type=Path, nargs='+',
+                                  help='arquivos N-Triples (.nt ou .nt.gz), ex.: saida/rdf/despesas-2025.nt.gz')
+
+    comando_consultar = subcomandos.add_parser(
+        'consultar', help='roda consultas SPARQL no banco e grava o resultado em CSV')
+    comando_consultar.add_argument('consultas', type=Path, nargs='+',
+                                   help='arquivos de consulta, ex.: consultas/1-entidades-em-comum.rq')
+
     argumentos = parser.parse_args()
     if argumentos.comando == 'converter':
         _converter(argumentos.base, argumentos.entrada, argumentos.saida)
@@ -240,3 +293,7 @@ def main() -> None:
         _gravar_formas(argumentos.base)
     elif argumentos.comando == 'validar':
         _validar(argumentos.base, argumentos.entrada, argumentos.linhas_por_lote)
+    elif argumentos.comando == 'carregar':
+        _carregar_banco(argumentos.arquivos)
+    elif argumentos.comando == 'consultar':
+        _consultar_banco(argumentos.consultas)

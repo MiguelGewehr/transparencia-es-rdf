@@ -1,8 +1,8 @@
 # transparencia-es-rdf
 
-Converte as bases de Receitas e de Despesas do Portal de Dados Abertos do Espírito Santo ([dados.es.gov.br](https://dados.es.gov.br)) para RDF, com as classes e as propriedades da ontologia do projeto, e valida o resultado com SHACL.
+Converte as bases de Receitas e de Despesas do Portal de Dados Abertos do Espírito Santo ([dados.es.gov.br](https://dados.es.gov.br)) para RDF, com as classes e as propriedades da ontologia do projeto, valida o resultado com SHACL e consulta os dados com SPARQL.
 
-Versão 0.1.0: cabeçalho de metadados, conversão e validação de Receitas (arquivo de 2025) e dos quatro arquivos de Despesas que a ontologia descreve: Despesas (2025), Restos a Pagar (2024), Orçamentos de Despesa (2025) e Orçamentos de Execuções (2025).
+Versão 0.1.0: cabeçalho de metadados, conversão, validação e consultas SPARQL de Receitas (arquivo de 2025) e dos quatro arquivos de Despesas que a ontologia descreve: Despesas (2025), Restos a Pagar (2024), Orçamentos de Despesa (2025) e Orçamentos de Execuções (2025).
 
 ## Contexto
 
@@ -19,13 +19,15 @@ O trabalho faz parte do projeto *Melhoria da Maturidade das Bases de Dados Abert
 | `metadados` | consulta a API do portal e grava o cabeçalho de metadados de um arquivo: de qual pacote e de qual recurso os dados vieram, a licença, o autor e a data | `saida/metadados/` |
 | `formas` | gera as formas SHACL de uma base a partir da ontologia, para leitura | `saida/formas/` |
 | `validar` | converte um CSV em lotes e valida cada lote com as formas SHACL | `saida/validacao/` |
+| `carregar` | carrega arquivos N-Triples num banco de triplas em disco | `saida/banco/` |
+| `consultar` | roda consultas SPARQL no banco e grava o resultado em CSV | `saida/consultas/` |
 
 As duas bases se ligam pela unidade gestora (UG) e pela fonte de recursos, que recebem a mesma URI em Receitas e em Despesas. Para isso, as URIs são montadas a partir dos mesmos códigos:
 
 - a UG, pelo código de 6 dígitos. Despesas escreve sem o zero da frente o código das UGs dos órgãos 1 a 9 (`10101` em vez de `010101`), e a ferramenta completa o zero;
 - a fonte, pelo código detalhado (`codigoDetalhamentoFonteAux` em Receitas e `CodigoDetalhamentoFonte` em Despesas), que tem o mesmo formato nas duas bases.
 
-Nos arquivos de 2025, 115 UGs e 190 fontes aparecem nas duas bases. Nas amostras, por exemplo, a fonte `500.100200` aparece em Receitas e em Despesas com a mesma URI.
+Nos arquivos de 2025, 190 fontes aparecem nas duas bases. Das 121 UGs de Receitas, 115 aparecem no arquivo Despesas e as 121 aparecem em algum dos quatro arquivos de Despesas. Nas amostras, por exemplo, a fonte `500.100200` aparece em Receitas e em Despesas com a mesma URI.
 
 Os quatro arquivos de Despesas também se ligam entre si: uma entidade com a mesma URI em dois arquivos é a mesma entidade no grafo. A UG se liga nos quatro, e a esfera e os classificadores funcional e por natureza ligam Orçamentos de Despesa a Despesas.
 
@@ -64,7 +66,7 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-O `pip` instala as dependências que estão no [`pyproject.toml`](pyproject.toml) (rdflib, requests e pySHACL) e cria o comando `transparencia-es-rdf`. Nas próximas vezes, basta ativar o ambiente com `source .venv/bin/activate`.
+O `pip` instala as dependências que estão no [`pyproject.toml`](pyproject.toml) (rdflib, requests, pySHACL e pyoxigraph) e cria o comando `transparencia-es-rdf`. Nas próximas vezes, basta ativar o ambiente com `source .venv/bin/activate`.
 
 ## Uso
 
@@ -145,6 +147,29 @@ A pySHACL carrega o grafo na memória, então o `validar` converte o CSV em lote
 
 As violações mostram onde o arquivo do portal e a ontologia não se encaixam. Quase todas são de dado que falta: parte é falta de dado no portal (descrições vazias, municípios com o texto `null`) e parte é algo que a ontologia pede e o arquivo não traz (a unidade orçamentária no arquivo Despesas, os classificadores em Restos a Pagar).
 
+### Consultar com SPARQL
+
+Com os dados em RDF, uma consulta SPARQL junta arquivos diferentes pela mesma entidade: a UG e a fonte, que têm a mesma URI em Receitas e em Despesas, ou o código da função de governo. O `carregar` põe os N-Triples num banco do [Oxigraph](https://github.com/oxigraph/oxigraph) (biblioteca pyoxigraph), que guarda as triplas em disco e por isso aguenta os arquivos completos. O `consultar` roda as consultas nesse banco.
+
+```
+transparencia-es-rdf carregar saida/rdf/receitas-2025.nt.gz saida/rdf/despesas-2025.nt.gz saida/rdf/restos-a-pagar-2024.nt.gz saida/rdf/orcamentos-despesa-2025.nt.gz saida/rdf/orcamentos-execucoes-2025.nt.gz
+transparencia-es-rdf consultar consultas/*.rq
+```
+
+O `carregar` apaga o banco antigo e começa um novo, para não misturar triplas de uma conversão antiga com as de uma nova. Por isso, carregue todos os arquivos de uma vez, e de novo sempre que converter algum deles. O `consultar` mostra o resultado de cada consulta na tela e grava em `saida/consultas/<nome da consulta>.csv`.
+
+As consultas estão em [`consultas/`](consultas), uma por arquivo `.rq`:
+
+| Consulta | O que mostra | Arquivos que junta |
+|---|---|---|
+| `1-entidades-em-comum.rq` | quantas UGs e quantas fontes aparecem em cada base e nas duas, e a cobertura: a parte das de Receitas que também aparece em Despesas | Receitas e os quatro arquivos de Despesas que estiverem no banco |
+| `2-receita-e-despesa-por-ug.rq` | a receita arrecadada (líquida) e a despesa paga das 10 UGs que mais pagaram | Receitas e Despesas |
+| `3-receita-e-despesa-por-fonte.rq` | o mesmo, por fonte de recursos | Receitas e Despesas |
+| `4-orcado-e-pago-por-funcao.rq` | a dotação atualizada, o valor pago e a parte paga da dotação de cada função de governo | Orçamentos de Despesa e Despesas |
+| `5-execucao-por-ug-nos-dois-arquivos.rq` | se o valor pago de cada UG em Orçamentos de Execuções é igual à soma das linhas da UG em Despesas | Orçamentos de Execuções e Despesas |
+
+Para escrever outra consulta, basta criar outro `.rq` na pasta. O comando aceita consultas `SELECT`.
+
 ## Como conferir o resultado
 
 A conversão é determinística: o mesmo CSV gera sempre o mesmo N-Triples, byte a byte. Por isso o número de triplas e o SHA-256 da saída servem de conferência depois de qualquer mudança no código. Para as amostras:
@@ -171,7 +196,8 @@ Quando a saída muda de propósito, por exemplo com uma versão nova da ontologi
 | [`src/transparencia_es_rdf/`](src/transparencia_es_rdf) | o código |
 | [`dados/`](dados) | os CSVs: `amostra/` vai para o Git, `bruto/` (os arquivos completos) não |
 | [`ontologia/`](ontologia) | a cópia da ontologia usada (ver [A ontologia](#a-ontologia)) |
-| `saida/` | o que os comandos geram, em `rdf/`, `metadados/`, `formas/` e `validacao/`; não vai para o Git, porque dá para gerar de novo |
+| [`consultas/`](consultas) | as consultas SPARQL, uma por arquivo `.rq` |
+| `saida/` | o que os comandos geram, em `rdf/`, `metadados/`, `formas/`, `validacao/`, `banco/` e `consultas/`; não vai para o Git, porque dá para gerar de novo |
 
 ### Como o código está organizado
 
@@ -186,6 +212,7 @@ Quando a saída muda de propósito, por exemplo com uma versão nova da ontologi
 | [`receitas/`](src/transparencia_es_rdf/receitas) | a base de Receitas |
 | [`despesas/`](src/transparencia_es_rdf/despesas) | a base de Despesas |
 | [`validacao/`](src/transparencia_es_rdf/validacao) | a geração das formas SHACL a partir da ontologia (`formas.py`) e a validação em lotes (`validador.py`) |
+| [`sparql/`](src/transparencia_es_rdf/sparql) | o banco de triplas em disco: a carga dos N-Triples e as consultas (`banco.py`) |
 
 A pasta de cada base tem os mesmos arquivos:
 

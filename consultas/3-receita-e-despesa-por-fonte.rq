@@ -1,0 +1,27 @@
+# Receita arrecadada (líquida) e despesa paga de cada fonte de recursos, juntando as duas bases pela URI da fonte.
+PREFIX rec: <https://example.org/ontologia-portal-transparencia-es/base-receitas#>
+PREFIX desp: <https://example.org/ontologia-portal-transparencia-es/base-despesas#>
+
+SELECT ?codigo ?descricao ?arrecadada ?paga WHERE {
+  {
+    SELECT ?fonte (SUM(?valor) AS ?arrecadada) WHERE {
+      ?classificacao rec:ClassificacaoDoRegistroDeReceitaOrcamentaria.fonteClassificadaPor ?fonte ;
+                     rec:ClassificacaoDoRegistroDeReceitaOrcamentaria.classifica ?registro .
+      ?registro rec:RegistroDeReceitaOrcamentaria.valorAtreladoNaReceita ?v .
+      ?v rec:ValorAtreladoNaReceita.valorArrecadadaLiquida ?valor .
+    } GROUP BY ?fonte
+  }
+  {
+    SELECT ?fonte (SUM(?valor) AS ?paga) WHERE {
+      ?classificacao desp:ClassificacaoDoRegistroDeDespesaOrcamentaria.fonteClassificadaPor ?fonte ;
+                     desp:ClassificacaoDoRegistroDeDespesaOrcamentaria.classifica ?registro .
+      ?registro a desp:RegistroDeDespesa ;
+                desp:RegistroDeDespesa.valorAtrelado ?v .
+      ?v desp:ValorAtreladoNoRegistroDeDespesa.valorPago ?valor .
+    } GROUP BY ?fonte
+  }
+  ?fonte desp:FonteDaDespesa.codigoDetalhamentoFonte ?codigo .
+  OPTIONAL { ?fonte desp:FonteDaDespesa.descricaoDetalhamentoFonte ?descricao }
+}
+ORDER BY DESC(?paga)
+LIMIT 10

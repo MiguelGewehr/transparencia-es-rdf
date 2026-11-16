@@ -1,0 +1,27 @@
+# Receita arrecadada (líquida) e despesa paga de cada UG, juntando as duas bases pela URI da UG.
+PREFIX rec: <https://example.org/ontologia-portal-transparencia-es/base-receitas#>
+PREFIX desp: <https://example.org/ontologia-portal-transparencia-es/base-despesas#>
+PREFIX nucleo: <https://example.org/ontologia-portal-transparencia-es/nucleo#>
+
+SELECT ?codigo (GROUP_CONCAT(DISTINCT ?descricao; separator=" / ") AS ?nome) ?arrecadada ?paga WHERE {
+  {
+    SELECT ?ug (SUM(?valor) AS ?arrecadada) WHERE {
+      ?registro rec:RegistroDeReceitaOrcamentaria.temUnidadeGestoraBeneficiadaDeReceita ?ug ;
+                rec:RegistroDeReceitaOrcamentaria.valorAtreladoNaReceita ?v .
+      ?v rec:ValorAtreladoNaReceita.valorArrecadadaLiquida ?valor .
+    } GROUP BY ?ug
+  }
+  {
+    SELECT ?ug (SUM(?valor) AS ?paga) WHERE {
+      ?registro a desp:RegistroDeDespesa ;
+                desp:RegistroDeDespesaOrcamentaria.temUnidadeGestoraDaDespesa ?ug ;
+                desp:RegistroDeDespesa.valorAtrelado ?v .
+      ?v desp:ValorAtreladoNoRegistroDeDespesa.valorPago ?valor .
+    } GROUP BY ?ug
+  }
+  ?ug nucleo:OrgaoPublico.codigo ?codigo .
+  OPTIONAL { ?ug nucleo:OrgaoPublico.descricao ?descricao }
+}
+GROUP BY ?codigo ?arrecadada ?paga
+ORDER BY DESC(?paga)
+LIMIT 10
