@@ -5,7 +5,7 @@ escrita (rdf/ntriples.py). Não abre arquivo, não baixa e não valida.
 
 O que a ontologia diz que uma linha descreve (cada seta é uma propriedade):
 
-    Registro      --formalizadaPor----------------> Receita
+    Registro      --temReceitaOrcamentaria--------> Receita
     Registro      --temUnidadeGestoraEmitente-----> UG emitente
     Registro      --temUnidadeGestoraBeneficiada--> UG beneficiada
     Registro      --valorAtreladoNaReceita--------> Valor (os 10 números da linha)
@@ -57,7 +57,7 @@ def escrever_registro_e_classificacao(estado: dict, linha: dict, identificador: 
     escrever(estado, uri_registro, RDF_TYPE, uri(mapeamento.CLASSE_REGISTRO))
     for propriedade_do_atributo, literal in atributos_preenchidos(estado, mapeamento.ATRIBUTOS_DO_REGISTRO, linha):
         escrever(estado, uri_registro, propriedade_do_atributo, literal)
-    escrever(estado, uri_registro, mapeamento.RELACAO_FORMALIZADA_POR, uri(uris_da_linha['receita']))
+    escrever(estado, uri_registro, mapeamento.RELACAO_TEM_RECEITA, uri(uris_da_linha['receita']))
     escrever(estado, uri_registro, mapeamento.RELACAO_TEM_UG_EMITENTE, uri(uris_da_linha['ug_emitente']))
     escrever(estado, uri_registro, mapeamento.RELACAO_TEM_UG_BENEFICIADA, uri(uris_da_linha['ug_beneficiada']))
 

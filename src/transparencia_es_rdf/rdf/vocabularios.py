@@ -10,8 +10,6 @@ from urllib.parse import quote
 
 from transparencia_es_rdf.config import URL_BASE_DADOS
 
-# Namespaces da ontologia congelada em ontologia/: base-receitas do commit
-# 15ffde5; base-despesas e nucleo do commit 90c3354.
 NAMESPACE_RECEITAS = 'https://example.org/ontologia-portal-transparencia-es/base-receitas#'
 NAMESPACE_DESPESAS = 'https://example.org/ontologia-portal-transparencia-es/base-despesas#'
 NAMESPACE_NUCLEO = 'https://example.org/ontologia-portal-transparencia-es/nucleo#'

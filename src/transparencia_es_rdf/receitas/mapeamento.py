@@ -11,9 +11,9 @@ CLASSE_CONTA = NAMESPACE_RECEITAS + 'ContaContabil'
 CLASSE_UG_EMITENTE = NAMESPACE_RECEITAS + 'UnidadeGestoraEmitenteDeReceita'
 CLASSE_UG_BENEFICIADA = NAMESPACE_RECEITAS + 'UnidadeGestoraBeneficiadaDeReceita'
 
-RELACAO_FORMALIZADA_POR = propriedade(NAMESPACE_RECEITAS, 'RegistroDeReceitaOrcamentaria', 'formalizadaPor')
-RELACAO_TEM_UG_EMITENTE = propriedade(NAMESPACE_RECEITAS, 'RegistroDeReceitaOrcamentaria', 'temUnidadeGestoraEmitente')
-RELACAO_TEM_UG_BENEFICIADA = propriedade(NAMESPACE_RECEITAS, 'RegistroDeReceitaOrcamentaria', 'temUnidadeGestoraBeneficiada')
+RELACAO_TEM_RECEITA = propriedade(NAMESPACE_RECEITAS, 'RegistroDeReceitaOrcamentaria', 'temReceitaOrcamentaria')
+RELACAO_TEM_UG_EMITENTE = propriedade(NAMESPACE_RECEITAS, 'RegistroDeReceitaOrcamentaria', 'temUnidadeGestoraEmitenteDeReceita')
+RELACAO_TEM_UG_BENEFICIADA = propriedade(NAMESPACE_RECEITAS, 'RegistroDeReceitaOrcamentaria', 'temUnidadeGestoraBeneficiadaDeReceita')
 RELACAO_TEM_VALOR = propriedade(NAMESPACE_RECEITAS, 'RegistroDeReceitaOrcamentaria', 'valorAtreladoNaReceita')
 RELACAO_CLASSIFICA = propriedade(NAMESPACE_RECEITAS, 'ClassificacaoDoRegistroDeReceitaOrcamentaria', 'classifica')
 RELACAO_NATUREZA = propriedade(NAMESPACE_RECEITAS, 'ClassificacaoDoRegistroDeReceitaOrcamentaria', 'naturezaClassificadaPor')

@@ -74,41 +74,42 @@ Cite MCASP - 11º Edicao: Parte I: Seção 3.2.1"""@pt-br ;
           owl:onProperty base-receitas:NaturezaDaReceita.descricaoTipo ;
           owl:cardinality "1"^^xsd:nonNegativeInteger ] .
 
-base-receitas:FonteDaReceita a owl:Class, gufo:Category ;
+base-receitas:FonteDaReceita a owl:Class, gufo:RoleMixin ;
     rdfs:label "FonteDaReceita" ;
-    rdfs:comment """A classificação por fontes ou destinações de recursos (FR) tem como objetivo agrupar receitas que possuam as mesmas normas de aplicação na despesa. Em regra, as fontes ou destinações de recursos reúnem recursos oriundos de determinados códigos da classificação por natureza da receita orçamentária, conforme regras previamente estabelecidas. Por meio do orçamento público, essas fontes ou destinações são associadas a determinadas despesas de forma a evidenciar os meios para atingir os objetivos públicos.
-Cite MCASP - 11º Edicao: Parte I: Seção 5.1
-No momento da arrecadação, a FR deverá ser informada no registro da realização da receita orçamentária (classe 6 do PCASP), no registro do ingresso dos recursos financeiros no ativo financeiro (classe 1 com atributo \"F\") e em contas de controle da Disponibilidade por Destinação de Recursos - DDR (nas classes 7 e 8 do PCASP). A partir desse momento, a FR informada para os recursos financeiros não deverá ser alterada
-Cite MCASP - 11º Edicao: Parte I: Seção 5.2"""@pt-br ;
+    rdfs:comment """No momento da arrecadação, a FR deverá ser informada no registro da realização da receita orçamentária (classe 6 do PCASP), no registro do ingresso dos recursos financeiros no ativo financeiro (classe 1 com atributo \"F\") e em contas de controle da Disponibilidade por Destinação de Recursos - DDR (nas classes 7 e 8 do PCASP). A partir desse momento, a FR informada para os recursos financeiros não deverá ser alterada
+Cite MCASP - 11º Edicao: Parte I: Seção 5.2""" ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:subClassOf
-        gufo:FunctionalComplex,
+        nucleo:FonteOrcamentaria,
         [ a owl:Restriction ;
           owl:onProperty base-receitas:FonteDaReceita.codigoFonte ;
-          owl:cardinality "1"^^xsd:nonNegativeInteger ],
+          owl:minCardinality "1"^^xsd:nonNegativeInteger ],
         [ a owl:Restriction ;
           owl:onProperty base-receitas:FonteDaReceita.descricaoFonte ;
-          owl:cardinality "1"^^xsd:nonNegativeInteger ],
+          owl:minCardinality "1"^^xsd:nonNegativeInteger ],
         [ a owl:Restriction ;
           owl:onProperty base-receitas:FonteDaReceita.codigoGrupoFonte ;
-          owl:cardinality "1"^^xsd:nonNegativeInteger ],
+          owl:minCardinality "1"^^xsd:nonNegativeInteger ],
         [ a owl:Restriction ;
           owl:onProperty base-receitas:FonteDaReceita.descricaoGrupoFonte ;
-          owl:cardinality "1"^^xsd:nonNegativeInteger ],
+          owl:minCardinality "1"^^xsd:nonNegativeInteger ],
         [ a owl:Restriction ;
           owl:onProperty base-receitas:FonteDaReceita.codigoDetalhamentoFonte ;
-          owl:cardinality "1"^^xsd:nonNegativeInteger ],
+          owl:minCardinality "1"^^xsd:nonNegativeInteger ],
         [ a owl:Restriction ;
           owl:onProperty base-receitas:FonteDaReceita.codigoDetalhamentoFonteAux ;
-          owl:cardinality "1"^^xsd:nonNegativeInteger ],
+          owl:minCardinality "1"^^xsd:nonNegativeInteger ],
         [ a owl:Restriction ;
           owl:onProperty base-receitas:FonteDaReceita.descricaoDetalhamentoFonte ;
-          owl:cardinality "1"^^xsd:nonNegativeInteger ] .
+          owl:minCardinality "1"^^xsd:nonNegativeInteger ],
+        [ a owl:Restriction ;
+          owl:onProperty [ owl:inverseOf base-receitas:ClassificacaoDoRegistroDeReceitaOrcamentaria.fonteClassificadaPor ] ;
+          owl:someValuesFrom base-receitas:ClassificacaoDoRegistroDeReceitaOrcamentaria ] .
 
 base-receitas:ContaContabil a owl:Class, gufo:Category ;
     rdfs:label "ContaContabil" ;
     rdfs:comment """Conta é a expressão qualitativa e quantitativa de fatos de mesma natureza, que evidencia a composição, variação e estado do patrimônio, bem como de bens, direitos, obrigações e situações nele não compreendidas, mas que, direta ou indiretamente, possam vir a afetá-lo.
-Cite MCASP - 11º Edicao: Parte IV: Seções 2.3 ; 3.1"""@pt-br ;
+Cite MCASP - 11º Edicao: Parte IV: Seções 2.3 ;"""@pt-br ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:subClassOf
         gufo:FunctionalComplex,
@@ -121,12 +122,12 @@ Cite MCASP - 11º Edicao: Parte IV: Seções 2.3 ; 3.1"""@pt-br ;
 
 base-receitas:UnidadeGestoraEmitenteDeReceita a owl:Class, gufo:Role ;
     rdfs:label "UnidadeGestoraEmitenteDeReceita" ;
-    rdfs:comment "Unidade gestora responsável pela emissão do documento contábil de receita."@pt-br ;
+    rdfs:comment "Unidade gestora responsável pela emissão da receita orçamentária."@pt-br ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:subClassOf
         nucleo:UnidadeGestora,
         [ a owl:Restriction ;
-          owl:onProperty [ owl:inverseOf base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraEmitente ] ;
+          owl:onProperty [ owl:inverseOf base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraEmitenteDeReceita ] ;
           owl:someValuesFrom base-receitas:RegistroDeReceitaOrcamentaria ],
         [ a owl:Restriction ;
           owl:onProperty [ owl:inverseOf base-receitas:ReceitaOrcamentariaRegistrada.emitidaPor ] ;
@@ -134,12 +135,12 @@ base-receitas:UnidadeGestoraEmitenteDeReceita a owl:Class, gufo:Role ;
 
 base-receitas:UnidadeGestoraBeneficiadaDeReceita a owl:Class, gufo:Role ;
     rdfs:label "UnidadeGestoraBeneficiadaDeReceita" ;
-    rdfs:comment "Unidade gestora beneficiada pela receita registrada no documento contábil."@pt-br ;
+    rdfs:comment "Unidade gestora beneficiada por uma receita orçamentária emitida."@pt-br ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:subClassOf
         nucleo:UnidadeGestora,
         [ a owl:Restriction ;
-          owl:onProperty [ owl:inverseOf base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraBeneficiada ] ;
+          owl:onProperty [ owl:inverseOf base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraBeneficiadaDeReceita ] ;
           owl:someValuesFrom base-receitas:RegistroDeReceitaOrcamentaria ],
         [ a owl:Restriction ;
           owl:onProperty [ owl:inverseOf base-receitas:ReceitaOrcamentariaRegistrada.emitidaPara ] ;
@@ -171,7 +172,7 @@ base-receitas:ReceitaOrcamentariaRegistrada a owl:Class, gufo:Role ;
           owl:onProperty base-receitas:ReceitaOrcamentariaRegistrada.ano ;
           owl:minCardinality "1"^^xsd:nonNegativeInteger ],
         [ a owl:Restriction ;
-          owl:onProperty [ owl:inverseOf base-receitas:RegistroDeReceitaOrcamentaria.formalizadaPor ] ;
+          owl:onProperty [ owl:inverseOf base-receitas:RegistroDeReceitaOrcamentaria.temReceitaOrcamentaria ] ;
           owl:someValuesFrom base-receitas:RegistroDeReceitaOrcamentaria ],
         [ a owl:Restriction ;
           owl:onProperty base-receitas:ReceitaOrcamentariaRegistrada.emitidaPara ;
@@ -182,7 +183,7 @@ base-receitas:ReceitaOrcamentariaRegistrada a owl:Class, gufo:Role ;
 
 base-receitas:ValorAtreladoNaReceita a owl:Class, gufo:AbstractIndividualType ;
     rdfs:label "ValorAtreladoNaReceita" ;
-    rdfs:comment "Tipo de dados que agrupa os valores que um Registro de Receita Orçamentária pode ter."@pt-br ;
+    rdfs:comment "Tipo de dados que agrupa os valores monetários que um Registro de Receita Orçamentária pode ter."@pt-br ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:subClassOf
         gufo:QualityValue,
@@ -219,7 +220,7 @@ base-receitas:ValorAtreladoNaReceita a owl:Class, gufo:AbstractIndividualType ;
 
 base-receitas:RegistroDeReceitaOrcamentaria a owl:Class, gufo:Kind ;
     rdfs:label "RegistroDeReceitaOrcamentaria" ;
-    rdfs:comment "Registro que associa a Receita às unidades gestoras emitente e beneficiada."@pt-br ;
+    rdfs:comment "Registro que associa a Receita às unidades gestoras emitentes e beneficiadas."@pt-br ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:subClassOf
         gufo:Relator,
@@ -242,14 +243,14 @@ base-receitas:RegistroDeReceitaOrcamentaria a owl:Class, gufo:Kind ;
           owl:onProperty base-receitas:RegistroDeReceitaOrcamentaria.tipo ;
           owl:cardinality "1"^^xsd:nonNegativeInteger ],
         [ a owl:Restriction ;
-          owl:onProperty base-receitas:RegistroDeReceitaOrcamentaria.formalizadaPor ;
+          owl:onProperty base-receitas:RegistroDeReceitaOrcamentaria.temReceitaOrcamentaria ;
           owl:onClass base-receitas:ReceitaOrcamentariaRegistrada ;
           owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ],
         [ a owl:Restriction ;
-          owl:onProperty base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraEmitente ;
+          owl:onProperty base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraEmitenteDeReceita ;
           owl:someValuesFrom base-receitas:UnidadeGestoraEmitenteDeReceita ],
         [ a owl:Restriction ;
-          owl:onProperty base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraBeneficiada ;
+          owl:onProperty base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraBeneficiadaDeReceita ;
           owl:someValuesFrom base-receitas:UnidadeGestoraBeneficiadaDeReceita ],
         [ a owl:Restriction ;
           owl:onProperty [ owl:inverseOf base-receitas:ClassificacaoDoRegistroDeReceitaOrcamentaria.classifica ] ;
@@ -397,55 +398,49 @@ base-receitas:NaturezaDaReceita.descricaoTipo a owl:DatatypeProperty, owl:Functi
     rdfs:range xsd:string ;
     rdfs:subPropertyOf gufo:hasQualityValue .
 
-base-receitas:FonteDaReceita.codigoFonte a owl:DatatypeProperty, owl:FunctionalProperty ;
+base-receitas:FonteDaReceita.codigoFonte a owl:DatatypeProperty ;
     rdfs:label "codigoFonte" ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:domain base-receitas:FonteDaReceita ;
     rdfs:range xsd:string ;
     rdfs:subPropertyOf gufo:hasQualityValue .
 
-base-receitas:FonteDaReceita.descricaoFonte a owl:DatatypeProperty, owl:FunctionalProperty ;
+base-receitas:FonteDaReceita.descricaoFonte a owl:DatatypeProperty ;
     rdfs:label "descricaoFonte" ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:domain base-receitas:FonteDaReceita ;
     rdfs:range xsd:string ;
     rdfs:subPropertyOf gufo:hasQualityValue .
 
-base-receitas:FonteDaReceita.codigoGrupoFonte a owl:DatatypeProperty, owl:FunctionalProperty ;
+base-receitas:FonteDaReceita.codigoGrupoFonte a owl:DatatypeProperty ;
     rdfs:label "codigoGrupoFonte" ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:domain base-receitas:FonteDaReceita ;
     rdfs:range xsd:string ;
     rdfs:subPropertyOf gufo:hasQualityValue .
 
-base-receitas:FonteDaReceita.descricaoGrupoFonte a owl:DatatypeProperty, owl:FunctionalProperty ;
+base-receitas:FonteDaReceita.descricaoGrupoFonte a owl:DatatypeProperty ;
     rdfs:label "descricaoGrupoFonte" ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:domain base-receitas:FonteDaReceita ;
     rdfs:range xsd:string ;
     rdfs:subPropertyOf gufo:hasQualityValue .
 
-base-receitas:FonteDaReceita.codigoDetalhamentoFonte a
-        owl:DatatypeProperty,
-        owl:FunctionalProperty ;
+base-receitas:FonteDaReceita.codigoDetalhamentoFonte a owl:DatatypeProperty ;
     rdfs:label "codigoDetalhamentoFonte" ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:domain base-receitas:FonteDaReceita ;
     rdfs:range xsd:string ;
     rdfs:subPropertyOf gufo:hasQualityValue .
 
-base-receitas:FonteDaReceita.codigoDetalhamentoFonteAux a
-        owl:DatatypeProperty,
-        owl:FunctionalProperty ;
+base-receitas:FonteDaReceita.codigoDetalhamentoFonteAux a owl:DatatypeProperty ;
     rdfs:label "codigoDetalhamentoFonteAux" ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:domain base-receitas:FonteDaReceita ;
     rdfs:range xsd:string ;
     rdfs:subPropertyOf gufo:hasQualityValue .
 
-base-receitas:FonteDaReceita.descricaoDetalhamentoFonte a
-        owl:DatatypeProperty,
-        owl:FunctionalProperty ;
+base-receitas:FonteDaReceita.descricaoDetalhamentoFonte a owl:DatatypeProperty ;
     rdfs:label "descricaoDetalhamentoFonte" ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:domain base-receitas:FonteDaReceita ;
@@ -623,24 +618,24 @@ base-receitas:RegistroDeReceitaOrcamentaria.tipo a owl:DatatypeProperty, owl:Fun
     rdfs:range xsd:string ;
     rdfs:subPropertyOf gufo:hasQualityValue .
 
-base-receitas:RegistroDeReceitaOrcamentaria.formalizadaPor a
+base-receitas:RegistroDeReceitaOrcamentaria.temReceitaOrcamentaria a
         owl:ObjectProperty,
         owl:FunctionalProperty ;
-    rdfs:label "formalizadaPor" ;
+    rdfs:label "temReceitaOrcamentaria" ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:domain base-receitas:RegistroDeReceitaOrcamentaria ;
     rdfs:range base-receitas:ReceitaOrcamentariaRegistrada ;
     rdfs:subPropertyOf gufo:mediates .
 
-base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraEmitente a owl:ObjectProperty ;
-    rdfs:label "temUnidadeGestoraEmitente" ;
+base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraEmitenteDeReceita a owl:ObjectProperty ;
+    rdfs:label "temUnidadeGestoraEmitenteDeReceita" ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:domain base-receitas:RegistroDeReceitaOrcamentaria ;
     rdfs:range base-receitas:UnidadeGestoraEmitenteDeReceita ;
     rdfs:subPropertyOf gufo:mediates .
 
-base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraBeneficiada a owl:ObjectProperty ;
-    rdfs:label "temUnidadeGestoraBeneficiada" ;
+base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraBeneficiadaDeReceita a owl:ObjectProperty ;
+    rdfs:label "temUnidadeGestoraBeneficiadaDeReceita" ;
     rdfs:isDefinedBy <https://example.org/ontologia-portal-transparencia-es/base-receitas> ;
     rdfs:domain base-receitas:RegistroDeReceitaOrcamentaria ;
     rdfs:range base-receitas:UnidadeGestoraBeneficiadaDeReceita ;
@@ -692,8 +687,8 @@ base-receitas:ReceitaOrcamentariaRegistrada.emitidaPara a
     rdfs:range base-receitas:UnidadeGestoraBeneficiadaDeReceita ;
     gufo:isDerivedFrom base-receitas:RegistroDeReceitaOrcamentaria ;
     owl:propertyChainAxiom (
-        [ owl:inverseOf base-receitas:RegistroDeReceitaOrcamentaria.formalizadaPor ]
-        base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraBeneficiada
+        [ owl:inverseOf base-receitas:RegistroDeReceitaOrcamentaria.temReceitaOrcamentaria ]
+        base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraBeneficiadaDeReceita
     ) .
 
 base-receitas:ReceitaOrcamentariaRegistrada.emitidaPor a
@@ -705,8 +700,8 @@ base-receitas:ReceitaOrcamentariaRegistrada.emitidaPor a
     rdfs:range base-receitas:UnidadeGestoraEmitenteDeReceita ;
     gufo:isDerivedFrom base-receitas:RegistroDeReceitaOrcamentaria ;
     owl:propertyChainAxiom (
-        [ owl:inverseOf base-receitas:RegistroDeReceitaOrcamentaria.formalizadaPor ]
-        base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraEmitente
+        [ owl:inverseOf base-receitas:RegistroDeReceitaOrcamentaria.temReceitaOrcamentaria ]
+        base-receitas:RegistroDeReceitaOrcamentaria.temUnidadeGestoraEmitenteDeReceita
     ) .
 
 [] a owl:AllDisjointClasses ;
