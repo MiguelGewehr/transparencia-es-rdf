@@ -11,6 +11,7 @@ __pycache__/
 
 dados/*
 !dados/amostra-receitas.csv
+!dados/amostra-despesas.csv
 
 # Arquivos gerados pelos comandos: dá para gerar de novo a qualquer hora.
 saida/

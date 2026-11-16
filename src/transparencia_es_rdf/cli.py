@@ -1,9 +1,22 @@
+"""Linha de comando do projeto.
+
+Uso:
+    transparencia-es-rdf metadados receitas 2025
+    transparencia-es-rdf converter receitas dados/amostra-receitas.csv saida/amostra-receitas.nt
+    transparencia-es-rdf converter despesas dados/amostra-despesas.csv saida/amostra-despesas.nt
+
+Este arquivo só liga as peças: lê o que foi digitado, chama as funções das
+outras pastas na ordem certa e mostra o resultado. Nenhuma regra de RDF mora aqui.
+"""
+
 import argparse
 import time
 from datetime import date
 from pathlib import Path
 
 from transparencia_es_rdf.config import PASTA_SAIDA
+from transparencia_es_rdf.despesas import arquivo as arquivo_despesas
+from transparencia_es_rdf.despesas import conversor as conversor_despesas
 from transparencia_es_rdf.metadados.cabecalho import montar_cabecalho
 from transparencia_es_rdf.metadados.uris import montar_uris
 from transparencia_es_rdf.portal.api import buscar_pacote, buscar_recurso
@@ -12,19 +25,24 @@ from transparencia_es_rdf.rdf.ntriples import abrir_saida
 from transparencia_es_rdf.receitas import arquivo as arquivo_receitas
 from transparencia_es_rdf.receitas import conversor as conversor_receitas
 
+# Cada base tem a sua pasta, com os mesmos nomes de arquivo.
 ARQUIVO_DA_BASE = {
+    'despesas': arquivo_despesas,
     'receitas': arquivo_receitas,
 }
 CONVERSOR_DA_BASE = {
+    'despesas': conversor_despesas,
     'receitas': conversor_receitas,
 }
 
 
 def milhares(numero: int) -> str:
+    """1234567 vira '1.234.567'."""
     return f'{numero:,}'.replace(',', '.')
 
 
 def gerar_metadados(nome_base: str, ano: int) -> Path:
+    """Busca o recurso e o pacote na API, monta o cabeçalho e grava o .ttl."""
     ids_por_ano = ARQUIVO_DA_BASE[nome_base].ID_RECURSO_POR_ANO
     if ano not in ids_por_ano:
         anos = ', '.join(str(a) for a in sorted(ids_por_ano))
@@ -60,7 +78,8 @@ def converter(nome_base: str, entrada: Path, saida: Path) -> dict:
 
     print(f'{milhares(relatorio["linhas_lidas"])} linhas lidas de {entrada}')
     print(f'{milhares(relatorio["triplas_escritas"])} triplas gravadas em {saida} ({segundos:.0f} s)')
-    print(f'Linhas repetidas, escritas uma vez só: {milhares(relatorio["linhas_repetidas"])}')
+    if 'linhas_repetidas' in relatorio:       # só Receitas junta linhas repetidas
+        print(f'Linhas repetidas, escritas uma vez só: {milhares(relatorio["linhas_repetidas"])}')
     print('Entidades por classe:')
     for classe, quantidade in relatorio['entidades_por_classe'].items():
         print(f'  {classe:<46}{milhares(quantidade):>10}')
