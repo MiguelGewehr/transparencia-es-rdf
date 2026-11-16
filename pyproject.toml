@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Converte bases do Portal de Dados Abertos do ES para RDF"
 requires-python = ">=3.11"
 dependencies = [
+    "pyshacl>=0.40",
     "rdflib>=7.0",
     "requests>=2.31",
 ]

@@ -31,7 +31,7 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-O `pip` instala as dependências que estão no [`pyproject.toml`](pyproject.toml) (rdflib e requests) e cria o comando `transparencia-es-rdf`. Nas próximas vezes, basta ativar o ambiente com `source .venv/bin/activate`.
+O `pip` instala as dependências que estão no [`pyproject.toml`](pyproject.toml) (rdflib, requests e pySHACL) e cria o comando `transparencia-es-rdf`. Nas próximas vezes, basta ativar o ambiente com `source .venv/bin/activate`.
 
 ## Uso
 
@@ -48,5 +48,5 @@ A pasta [`ontologia/`](ontologia) guarda uma cópia dos arquivos do [secont-onto
 | `mapeamentos/` | as tabelas da equipe que dizem a qual atributo vai cada coluna do CSV |
 | `out/diagramas/` | os diagramas das classes |
 
-O código não lê esses arquivos. Eles ficam aqui para registrar com qual versão da ontologia as triplas foram geradas. Os nomes das classes e das propriedades estão escritos no `mapeamento.py` de cada base e nos arquivos do `nucleo/`, do mesmo jeito que nos `.ttl`.
+A conversão não lê esses arquivos. Eles ficam aqui para registrar com qual versão da ontologia as triplas foram geradas, e a validação lê os `.ttl` de `out/ttl/` para gerar as formas SHACL (comandos `formas` e `validar`). Na conversão, os nomes das classes e das propriedades estão escritos no `mapeamento.py` de cada base e nos arquivos do `nucleo/`, do mesmo jeito que nos `.ttl`.
 

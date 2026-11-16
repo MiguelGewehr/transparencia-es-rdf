@@ -6,6 +6,8 @@ Uso:
     transparencia-es-rdf converter receitas dados/receitas/amostra/amostra-receitas.csv saida/amostra-receitas.nt
     transparencia-es-rdf converter despesas dados/despesa/amostra/amostra-despesas.csv saida/amostra-despesas.nt
     transparencia-es-rdf converter despesas dados/despesa/bruto/RestosAPagar-2024.csv saida/restos-a-pagar-2024.nt.gz
+    transparencia-es-rdf formas despesas
+    transparencia-es-rdf validar despesas dados/despesa/amostra/amostra-despesas.csv
 
 Em Despesas, o mesmo comando converte qualquer um dos quatro arquivos
 (Despesas, RestosAPagar, OrcamentosDespesa e OrcamentosExecucoes): o
@@ -16,6 +18,7 @@ outras pastas na ordem certa e mostra o resultado. Nenhuma regra de RDF mora aqu
 """
 
 import argparse
+import csv
 import time
 from datetime import date
 from pathlib import Path
@@ -33,6 +36,8 @@ from transparencia_es_rdf.rdf.ntriples import abrir_saida
 from transparencia_es_rdf.receitas import arquivo as arquivo_receitas
 from transparencia_es_rdf.receitas import conversor as conversor_receitas
 from transparencia_es_rdf.rdf.turtle import gravar_em_turtle
+from transparencia_es_rdf.validacao.formas import gerar_formas, ler_ontologia
+from transparencia_es_rdf.validacao.validador import validar_linhas
 
 # Cada base tem a sua pasta, com os mesmos nomes de arquivo.
 ARQUIVO_DA_BASE = {
@@ -91,23 +96,27 @@ def gerar_metadados(nome_base: str, ano: int, nome_do_arquivo: str | None = None
     return caminho
 
 
-def converter(nome_base: str, entrada: Path, saida: Path) -> dict:
-    """Lê o CSV da base, escreve as triplas em N-Triples e mostra o relatório."""
+def escolher_conversor(nome_base: str, entrada: Path):
+    """As colunas, o conversor e o módulo arquivo.py da base, para o CSV de entrada.
+
+    Em Despesas, o cabeçalho do CSV diz qual dos quatro arquivos é este.
+    """
     if not entrada.is_file():
         raise SystemExit(f'Arquivo não encontrado: {entrada}')
 
     arquivo_da_base = ARQUIVO_DA_BASE[nome_base]
     if nome_base == 'despesas':
-        # Despesas tem quatro arquivos: o cabeçalho diz qual é este.
         cabecalho = ler_cabecalho(entrada, arquivo_da_base.SEPARADOR, arquivo_da_base.CODIFICACAO)
         nome_do_arquivo = arquivo_da_base.identificar_arquivo(cabecalho)
-        colunas = arquivo_da_base.COLUNAS_POR_ARQUIVO[nome_do_arquivo]
-        conversor_da_base = CONVERSOR_DO_ARQUIVO_DE_DESPESAS[nome_do_arquivo]
         print(f'Arquivo de Despesas: {nome_do_arquivo}')
-    else:
-        colunas = arquivo_da_base.COLUNAS
-        conversor_da_base = CONVERSOR_DA_BASE[nome_base]
+        return (arquivo_da_base.COLUNAS_POR_ARQUIVO[nome_do_arquivo],
+                CONVERSOR_DO_ARQUIVO_DE_DESPESAS[nome_do_arquivo], arquivo_da_base)
+    return arquivo_da_base.COLUNAS, CONVERSOR_DA_BASE[nome_base], arquivo_da_base
 
+
+def converter(nome_base: str, entrada: Path, saida: Path) -> dict:
+    """Lê o CSV da base, escreve as triplas em N-Triples e mostra o relatório."""
+    colunas, conversor_da_base, arquivo_da_base = escolher_conversor(nome_base, entrada)
     linhas = ler_linhas(entrada, colunas, arquivo_da_base.SEPARADOR, arquivo_da_base.CODIFICACAO)
     inicio = time.perf_counter()
     with abrir_saida(saida) as destino:
@@ -122,6 +131,51 @@ def converter(nome_base: str, entrada: Path, saida: Path) -> dict:
     for classe, quantidade in relatorio['entidades_por_classe'].items():
         print(f'  {classe:<46}{milhares(quantidade):>10}')
     return relatorio
+
+def gravar_formas(nome_base: str) -> Path:
+    """Gera as formas SHACL da base a partir da ontologia e grava em Turtle."""
+    formas = gerar_formas(ler_ontologia(nome_base), nome_base)
+    PASTA_SAIDA.mkdir(exist_ok=True)
+    caminho = PASTA_SAIDA / f'formas-{nome_base}.ttl'
+    formas.serialize(destination=caminho, format='turtle')
+    print(f'{milhares(len(formas))} triplas gravadas em {caminho}')
+    return caminho
+
+
+def validar(nome_base: str, entrada: Path, linhas_por_lote: int) -> dict:
+    """Converte o CSV em lotes, valida cada lote com as formas e grava o resumo das violações.
+
+    O resumo vai para a tela e para saida/<nome do CSV>.validacao.csv.
+    """
+    colunas, conversor_da_base, arquivo_da_base = escolher_conversor(nome_base, entrada)
+    ontologia = ler_ontologia(nome_base)
+    formas = gerar_formas(ontologia, nome_base)
+
+    linhas = ler_linhas(entrada, colunas, arquivo_da_base.SEPARADOR, arquivo_da_base.CODIFICACAO)
+    inicio = time.perf_counter()
+    resumo = validar_linhas(linhas, conversor_da_base, formas, ontologia, linhas_por_lote)
+    segundos = time.perf_counter() - inicio
+
+    print(f'{milhares(resumo["linhas_lidas"])} linhas de {entrada} em {resumo["lotes"]} lote(s), '
+          f'{milhares(resumo["triplas_validadas"])} triplas validadas ({segundos:.0f} s)')
+    violacoes = resumo['violacoes']
+    if not violacoes:
+        print('Nenhuma violação.')
+    else:
+        total = sum(v['quantidade'] for v in violacoes)
+        print(f'{milhares(total)} violações, em {len(violacoes)} regras:')
+        for v in violacoes:
+            print(f'  {milhares(v["quantidade"]):>10}  {v["tipo"]:<22}{v["forma"]}  {v["regra"]}')
+
+    PASTA_SAIDA.mkdir(exist_ok=True)
+    caminho = PASTA_SAIDA / f'{entrada.name.split(".")[0]}.validacao.csv'
+    with open(caminho, 'w', newline='', encoding='utf-8') as arquivo_csv:
+        escritor = csv.DictWriter(arquivo_csv, fieldnames=['forma', 'regra', 'tipo', 'quantidade', 'exemplo'])
+        escritor.writeheader()
+        escritor.writerows(violacoes)
+    print(f'Resumo gravado em {caminho}')
+    return resumo
+
 
 def gerar_turtle(entrada: Path, saida: Path) -> None:
     """Grava em Turtle um N-Triples pequeno, como a amostra, para leitura."""
@@ -162,7 +216,21 @@ def main() -> None:
                                 help='arquivo N-Triples, ex.: saida/amostra-receitas.nt')
     comando_turtle.add_argument('saida', type=Path,
                                 help='arquivo Turtle de saída, ex.: saida/amostra-receitas.ttl')
-    
+
+    comando_formas = subcomandos.add_parser(
+        'formas', help='gera as formas SHACL de uma base a partir da ontologia')
+    comando_formas.add_argument('base', choices=sorted(CONVERSOR_DA_BASE),
+                                help='nome da base, ex.: despesas')
+
+    comando_validar = subcomandos.add_parser(
+        'validar', help='converte o CSV de uma base em lotes e valida com as formas SHACL')
+    comando_validar.add_argument('base', choices=sorted(CONVERSOR_DA_BASE),
+                                 help='nome da base, ex.: despesas')
+    comando_validar.add_argument('entrada', type=Path,
+                                 help='CSV de entrada, ex.: dados/despesa/amostra/amostra-despesas.csv')
+    comando_validar.add_argument('--linhas-por-lote', type=int, default=10_000,
+                                 help='linhas do CSV validadas de uma vez (padrão: 10000)')
+
     argumentos = parser.parse_args()
 
     if argumentos.comando == 'metadados':
@@ -171,3 +239,7 @@ def main() -> None:
         converter(argumentos.base, argumentos.entrada, argumentos.saida)
     elif argumentos.comando == 'turtle':
         gerar_turtle(argumentos.entrada, argumentos.saida)
+    elif argumentos.comando == 'formas':
+        gravar_formas(argumentos.base)
+    elif argumentos.comando == 'validar':
+        validar(argumentos.base, argumentos.entrada, argumentos.linhas_por_lote)

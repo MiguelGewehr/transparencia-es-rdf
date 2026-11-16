@@ -28,3 +28,7 @@ AUTOR = 'Miguel Gewehr de Oliveira'
 # Pasta onde os .ttl gerados são gravados. O caminho é relativo à pasta em
 # que o comando roda, por isso os comandos rodam na raiz do repositório.
 PASTA_SAIDA = Path('saida')
+
+# Pasta com a ontologia em OWL, que a validação lê para gerar as formas SHACL
+# (validacao/formas.py). Também é relativa à pasta em que o comando roda.
+PASTA_ONTOLOGIA = Path('ontologia/out/ttl')
