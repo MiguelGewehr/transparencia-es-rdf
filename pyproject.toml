@@ -11,7 +11,6 @@ dependencies = [
     "pyoxigraph>=0.5",
     "pyshacl>=0.40",
     "rdflib>=7.0",
-    "requests>=2.31",
 ]
 
 [project.scripts]

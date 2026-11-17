@@ -4,8 +4,6 @@ Uso (na raiz do repositório):
     transparencia-es-rdf converter receitas dados/receitas/amostra/amostra-receitas.csv saida/rdf/amostra-receitas.nt
     transparencia-es-rdf converter despesas dados/despesas/bruto/despesas2025.csv saida/rdf/despesas-2025.nt.gz
     transparencia-es-rdf turtle saida/rdf/amostra-receitas.nt saida/rdf/amostra-receitas.ttl
-    transparencia-es-rdf metadados receitas 2025
-    transparencia-es-rdf metadados despesas 2024 --arquivo restos-a-pagar
     transparencia-es-rdf formas despesas
     transparencia-es-rdf validar despesas dados/despesas/amostra/amostra-despesas.csv
     transparencia-es-rdf carregar saida/rdf/receitas-2025.nt.gz saida/rdf/despesas-2025.nt.gz
@@ -22,17 +20,13 @@ outras pastas na ordem certa e mostra o resultado. Nenhuma regra de RDF mora aqu
 import argparse
 import csv
 import time
-from datetime import date
 from pathlib import Path
 
-from transparencia_es_rdf.config import (PASTA_BANCO, PASTA_FORMAS, PASTA_METADADOS,
-                                         PASTA_RESULTADOS_DAS_CONSULTAS, PASTA_VALIDACAO)
+from transparencia_es_rdf.config import (PASTA_BANCO, PASTA_FORMAS, PASTA_RESULTADOS_DAS_CONSULTAS,
+                                         PASTA_VALIDACAO)
 from transparencia_es_rdf.despesas import arquivo as arquivo_despesas
 from transparencia_es_rdf.despesas import (conversor_despesas, conversor_orcamentos_despesa,
                                            conversor_orcamentos_execucoes, conversor_restos_a_pagar)
-from transparencia_es_rdf.metadados.cabecalho import montar_cabecalho
-from transparencia_es_rdf.metadados.uris import montar_uris
-from transparencia_es_rdf.portal.api import buscar_pacote, buscar_recurso
 from transparencia_es_rdf.portal.leitura import ler_cabecalho, ler_linhas
 from transparencia_es_rdf.rdf.ntriples import abrir_saida
 from transparencia_es_rdf.rdf.turtle import gravar_em_turtle
@@ -112,35 +106,6 @@ def _gerar_turtle(entrada: Path, saida: Path) -> None:
         raise SystemExit(f'Arquivo não encontrado: {entrada}')
     quantidade = gravar_em_turtle(entrada, saida)
     print(f'{_milhares(quantidade)} triplas gravadas em {saida}')
-
-
-def _gerar_metadados(nome_base: str, ano: int, nome_do_arquivo: str | None) -> None:
-    """Busca o recurso e o pacote na API, monta o cabeçalho e grava em saida/metadados/.
-
-    Em Despesas, nome_do_arquivo diz qual dos quatro arquivos ('despesas',
-    'restos-a-pagar'...); sem ele, vale o arquivo Despesas. Em Receitas, não se usa.
-    """
-    if nome_base == 'despesas':
-        nome_do_arquivo = nome_do_arquivo or 'despesas'
-        ids_por_ano = arquivo_despesas.ID_RECURSO_POR_ARQUIVO_E_ANO[nome_do_arquivo]
-    elif nome_do_arquivo is not None:
-        raise SystemExit('A opção --arquivo só vale para despesas.')
-    else:
-        nome_do_arquivo = nome_base
-        ids_por_ano = arquivo_receitas.ID_RECURSO_POR_ANO
-    if ano not in ids_por_ano:
-        anos = ', '.join(str(a) for a in sorted(ids_por_ano))
-        raise SystemExit(f'Não há recurso de {nome_do_arquivo} para {ano}. Anos cadastrados: {anos}.')
-
-    recurso = buscar_recurso(ids_por_ano[ano])
-    pacote = buscar_pacote(recurso['package_id'])
-    uris = montar_uris(recurso, nome_base)
-    cabecalho = montar_cabecalho(recurso, pacote, uris, nome_base, data_criacao=date.today())
-
-    PASTA_METADADOS.mkdir(parents=True, exist_ok=True)
-    caminho = PASTA_METADADOS / f'{nome_do_arquivo}-{ano}.ttl'
-    cabecalho.serialize(destination=caminho, format='turtle')
-    print(f'{len(cabecalho)} triplas gravadas em {caminho}')
 
 
 def _gravar_formas(nome_base: str) -> None:
@@ -253,13 +218,6 @@ def main() -> None:
     comando_turtle.add_argument('saida', type=Path,
                                 help='arquivo Turtle de saída, ex.: saida/rdf/amostra-receitas.ttl')
 
-    comando_metadados = subcomandos.add_parser(
-        'metadados', help='grava o cabeçalho de metadados de uma base e ano (consulta a API do portal)')
-    comando_metadados.add_argument('base', choices=BASES, help='nome da base, ex.: receitas')
-    comando_metadados.add_argument('ano', type=int, help='ano do arquivo, ex.: 2025')
-    comando_metadados.add_argument('--arquivo', choices=sorted(arquivo_despesas.COLUNAS_POR_ARQUIVO),
-                                   help='só em despesas: qual dos quatro arquivos (sem a opção, o arquivo Despesas)')
-
     comando_formas = subcomandos.add_parser(
         'formas', help='grava as formas SHACL de uma base, geradas a partir da ontologia')
     comando_formas.add_argument('base', choices=BASES, help='nome da base, ex.: despesas')
@@ -287,8 +245,6 @@ def main() -> None:
         _converter(argumentos.base, argumentos.entrada, argumentos.saida)
     elif argumentos.comando == 'turtle':
         _gerar_turtle(argumentos.entrada, argumentos.saida)
-    elif argumentos.comando == 'metadados':
-        _gerar_metadados(argumentos.base, argumentos.ano, argumentos.arquivo)
     elif argumentos.comando == 'formas':
         _gravar_formas(argumentos.base)
     elif argumentos.comando == 'validar':

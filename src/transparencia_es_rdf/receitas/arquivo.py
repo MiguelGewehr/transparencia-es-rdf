@@ -4,13 +4,6 @@ O pacote no dados.es.gov.br é o portal-da-transparencia-receitas, com um
 arquivo Receitas-<ano>.csv por ano desde 16/10/2026.
 """
 
-# ID do recurso (o arquivo CSV) de cada ano no dados.es.gov.br. O portal já
-# trocou esses IDs uma vez (em 16/10/2026); se o resource_show der 404,
-# procure o novo no package_show do pacote.
-ID_RECURSO_POR_ANO = {
-    2025: '2dc2d874-0d72-4c01-b8a0-ecb6f392d6e4',
-}
-
 # Formato do CSV: ponto e vírgula entre as colunas e UTF-8 com BOM no começo.
 SEPARADOR = ';'
 CODIFICACAO = 'utf-8-sig'

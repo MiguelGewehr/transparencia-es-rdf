@@ -2,7 +2,9 @@
 
 Converte as bases de Receitas e de Despesas do Portal de Dados Abertos do Espírito Santo ([dados.es.gov.br](https://dados.es.gov.br)) para RDF, com as classes e as propriedades da ontologia do projeto, valida o resultado com SHACL e consulta os dados com SPARQL.
 
-Versão 0.1.0: cabeçalho de metadados, conversão, validação e consultas SPARQL de Receitas (arquivo de 2025) e dos quatro arquivos de Despesas que a ontologia descreve: Despesas (2025), Restos a Pagar (2024), Orçamentos de Despesa (2025) e Orçamentos de Execuções (2025).
+Versão 0.1.0: conversão, validação e consultas SPARQL de Receitas (arquivo de 2025) e dos quatro arquivos de Despesas que a ontologia descreve: Despesas (2025), Restos a Pagar (2024), Orçamentos de Despesa (2025) e Orçamentos de Execuções (2025).
+
+A ferramenta trabalha só com os CSVs já baixados e não consulta a internet. A versão que também gera um cabeçalho de metadados de proveniência, consultando a API do portal, está na branch [`com-metadados`](../../tree/com-metadados).
 
 ## Contexto
 
@@ -16,7 +18,6 @@ O trabalho faz parte do projeto *Melhoria da Maturidade das Bases de Dados Abert
 |---|---|---|
 | `converter` | lê um CSV do portal e escreve as triplas em N-Triples, uma por linha | no caminho que você der (sugestão: `saida/rdf/`) |
 | `turtle` | regrava um N-Triples pequeno, como uma amostra, em Turtle, para leitura | no caminho que você der |
-| `metadados` | consulta a API do portal e grava o cabeçalho de metadados de um arquivo: de qual pacote e de qual recurso os dados vieram, a licença, o autor e a data | `saida/metadados/` |
 | `formas` | gera as formas SHACL de uma base a partir da ontologia, para leitura | `saida/formas/` |
 | `validar` | converte um CSV em lotes e valida cada lote com as formas SHACL | `saida/validacao/` |
 | `carregar` | carrega arquivos N-Triples num banco de triplas em disco | `saida/banco/` |
@@ -66,7 +67,7 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-O `pip` instala as dependências que estão no [`pyproject.toml`](pyproject.toml) (rdflib, requests, pySHACL e pyoxigraph) e cria o comando `transparencia-es-rdf`. Nas próximas vezes, basta ativar o ambiente com `source .venv/bin/activate`.
+O `pip` instala as dependências que estão no [`pyproject.toml`](pyproject.toml) (rdflib, pySHACL e pyoxigraph) e cria o comando `transparencia-es-rdf`. Nas próximas vezes, basta ativar o ambiente com `source .venv/bin/activate`.
 
 ## Uso
 
@@ -116,20 +117,6 @@ As triplas são gravadas à medida que as linhas são lidas, sem carregar o CSV 
 | Orçamentos de Execuções 2025 | 125 | 2.368 |
 
 O portal atualiza os arquivos, então um CSV baixado em outra data pode dar outros números.
-
-### Gerar o cabeçalho de metadados
-
-Este comando consulta a API do portal, então precisa de internet:
-
-```
-transparencia-es-rdf metadados receitas 2025
-transparencia-es-rdf metadados despesas 2025
-transparencia-es-rdf metadados despesas 2024 --arquivo restos-a-pagar
-transparencia-es-rdf metadados despesas 2025 --arquivo orcamentos-despesa
-transparencia-es-rdf metadados despesas 2025 --arquivo orcamentos-execucoes
-```
-
-O resultado vai para `saida/metadados/`, por exemplo `saida/metadados/receitas-2025.ttl`. O cabeçalho usa os vocabulários DCAT, DCTERMS e PROV-O, e aponta com `dcterms:conformsTo` os módulos da ontologia que os dados seguem. Os anos que a ferramenta conhece estão no `arquivo.py` de cada base (`ID_RECURSO_POR_ANO` em Receitas e `ID_RECURSO_POR_ARQUIVO_E_ANO` em Despesas).
 
 ### Validar com SHACL
 
@@ -197,16 +184,15 @@ Quando a saída muda de propósito, por exemplo com uma versão nova da ontologi
 | [`dados/`](dados) | os CSVs: `amostra/` vai para o Git, `bruto/` (os arquivos completos) não |
 | [`ontologia/`](ontologia) | a cópia da ontologia usada (ver [A ontologia](#a-ontologia)) |
 | [`consultas/`](consultas) | as consultas SPARQL, uma por arquivo `.rq` |
-| `saida/` | o que os comandos geram, em `rdf/`, `metadados/`, `formas/`, `validacao/`, `banco/` e `consultas/`; não vai para o Git, porque dá para gerar de novo |
+| `saida/` | o que os comandos geram, em `rdf/`, `formas/`, `validacao/`, `banco/` e `consultas/`; não vai para o Git, porque dá para gerar de novo |
 
 ### Como o código está organizado
 
 | Pasta ou arquivo | O que tem |
 |---|---|
 | [`cli.py`](src/transparencia_es_rdf/cli.py) | o comando `transparencia-es-rdf`: lê o que foi digitado e chama as outras partes na ordem certa |
-| [`config.py`](src/transparencia_es_rdf/config.py) | os endereços do portal e da API, o começo das URIs, o autor, o idioma, a versão do grafo e as pastas |
-| [`portal/`](src/transparencia_es_rdf/portal) | a consulta à API do portal (`api.py`) e a leitura do CSV, que confere o cabeçalho (`leitura.py`) |
-| [`metadados/`](src/transparencia_es_rdf/metadados) | o cabeçalho de metadados (`cabecalho.py`) e as URIs que ele usa (`uris.py`) |
+| [`config.py`](src/transparencia_es_rdf/config.py) | o começo das URIs e as pastas |
+| [`portal/`](src/transparencia_es_rdf/portal) | a leitura do CSV, que confere o cabeçalho (`leitura.py`) |
 | [`rdf/`](src/transparencia_es_rdf/rdf) | o que vale para qualquer base: os namespaces (`vocabularios.py`), o formato N-Triples (`ntriples.py`), a escrita que não repete triplas (`escrita.py`) e a regravação em Turtle (`turtle.py`) |
 | [`nucleo/`](src/transparencia_es_rdf/nucleo) | o que as duas bases compartilham: a UG (`unidade_gestora.py`) e a fonte (`fonte.py`) |
 | [`receitas/`](src/transparencia_es_rdf/receitas) | a base de Receitas |
@@ -216,7 +202,7 @@ Quando a saída muda de propósito, por exemplo com uma versão nova da ontologi
 
 A pasta de cada base tem os mesmos arquivos:
 
-- `arquivo.py`: como é o CSV (colunas, separador e codificação) e o ID do recurso no portal para cada ano;
+- `arquivo.py`: como é o CSV (colunas, separador e codificação);
 - `mapeamento.py`: de qual coluna vem cada atributo, e quais classes e relações da ontologia ligam as entidades;
 - `uris.py`: como cada entidade ganha a sua URI;
 - os conversores, que transformam as linhas em triplas. Receitas tem um só (`conversor.py`). Despesas tem um para cada arquivo (`conversor_despesas.py`, `conversor_restos_a_pagar.py`, `conversor_orcamentos_despesa.py` e `conversor_orcamentos_execucoes.py`), e o que os quatro fazem igual fica em `comum.py`.
@@ -272,7 +258,7 @@ Esse começo é provisório: hoje essas URIs não levam a nenhuma página. Os na
 
 Desenvolvido por Miguel Gewehr de Oliveira, com orientação de Vítor E. Silva Souza e coorientação de Veruska Zamborlini, no projeto do NEMO com a SECONT. A ontologia é mantida pela equipe de modelagem do projeto, no secont-ontologias.
 
-O repositório está sob a licença Creative Commons Atribuição 4.0 Internacional (CC BY 4.0), em [`LICENSE.txt`](LICENSE.txt). Os dados convertidos seguem a licença que o portal informa para cada pacote, que o cabeçalho de metadados registra.
+O repositório está sob a licença Creative Commons Atribuição 4.0 Internacional (CC BY 4.0), em [`LICENSE.txt`](LICENSE.txt). Os dados convertidos seguem a licença que o portal informa para cada pacote no dados.es.gov.br.
 
 Para citar:
 
