@@ -6,7 +6,7 @@ usa as mesmas funções de rdf/escrita.py para não repetir triplas. As partes
 que os quatro arquivos de Despesas têm em comum (a despesa, o registro, o
 valor e a classificação) são escritas pelas funções de despesas/comum.py.
 
-O que a ontologia (commit e0fff39) diz que uma linha descreve (cada seta é
+O que a ontologia (commit e99443d) diz que uma linha descreve (cada seta é
 uma propriedade; as marcadas com * só existem se a linha tiver a entidade):
 
     Registro --temDespesaOrcamentaria---------> Despesa

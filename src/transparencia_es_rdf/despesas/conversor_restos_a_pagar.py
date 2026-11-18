@@ -1,6 +1,6 @@
 """Conversão das linhas do arquivo RestosAPagar em triplas.
 
-O que a ontologia (commit e0fff39) diz que uma linha descreve:
+O que a ontologia (commit e99443d) diz que uma linha descreve:
 
     Registro --temDespesaOrcamentaria---------> Despesa
     Registro --temUnidadeGestoraDaDespesa-----> UG

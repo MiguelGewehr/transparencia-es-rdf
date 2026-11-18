@@ -3,7 +3,7 @@ classes e relações que a ontologia usa para ligar as entidades.
 
 É a tabela que se confere contra o mapeamento da equipe, que tem um arquivo
 para cada arquivo do portal (ontologia/mapeamentos/base-despesas/, commit
-e0fff39). A primeira parte é a do arquivo Despesas; as outras três, a dos
+e99443d). A primeira parte é a do arquivo Despesas; as outras três, a dos
 arquivos RestosAPagar, OrcamentosDespesa e OrcamentosExecucoes, reaproveitam
 as classes e os atributos da primeira quando as colunas são as mesmas.
 
@@ -397,8 +397,8 @@ CLASSE_VALOR_ORCAMENTO_EXECUCAO = NAMESPACE_DESPESAS + 'ValorAtreladoNoOrcamento
 
 RELACAO_EXECUCAO_VALOR = propriedade(NAMESPACE_DESPESAS, 'RegistroDeOrcamentoDeExecucao', 'valorAtrelado')
 
-# Registro (2 colunas). O mapeamento da equipe escreve RegistroDeOrcamentoDeExecucoes,
-# no plural; na ontologia a classe é RegistroDeOrcamentoDeExecucao.
+# Registro (2 colunas). O Id é o idRegistro de RegistroDeDespesaOrcamentaria,
+# como nos outros arquivos.
 ATRIBUTOS_DO_REGISTRO_ORCAMENTO_EXECUCAO = {
     'Id': propriedade(NAMESPACE_DESPESAS, 'RegistroDeDespesaOrcamentaria', 'idRegistro'),
     'Data': propriedade(NAMESPACE_DESPESAS, 'RegistroDeOrcamentoDeExecucao', 'data'),

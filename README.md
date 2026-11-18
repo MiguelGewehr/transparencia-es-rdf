@@ -213,7 +213,7 @@ No código, uma função com o nome começando em `_` só é usada dentro do pr�
 
 ## A ontologia
 
-A pasta [`ontologia/`](ontologia) guarda uma cópia dos arquivos do [secont-ontologias](https://github.com/Renzo-Henrique/secont-ontologias) no commit `e0fff39`, de 16 de novembro de 2026:
+A pasta [`ontologia/`](ontologia) guarda uma cópia dos arquivos do [secont-ontologias](https://github.com/Renzo-Henrique/secont-ontologias) no commit `e99443d`, de 17 de novembro de 2026:
 
 | Pasta | O que tem |
 |---|---|
