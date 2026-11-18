@@ -30,7 +30,7 @@ def _converter_linha(estado: dict, linha: dict) -> None:
         'ug': (uri_da_unidade_gestora(linha['CodigoUnidadeGestora']), mapeamento.CLASSE_UG,
                mapeamento.ATRIBUTOS_DA_UG_COM_SIGLA),
     })
-    uri_valor = comum.escrever_valor(estado, linha, 'valor-orcamento-execucao',
+    uri_valor = comum.escrever_valor(estado, NOME_DO_ARQUIVO, linha,
                                      mapeamento.CLASSE_VALOR_ORCAMENTO_EXECUCAO,
                                      mapeamento.ATRIBUTOS_DO_VALOR_ORCAMENTO_EXECUCAO)
 

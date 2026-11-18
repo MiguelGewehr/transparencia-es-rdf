@@ -39,7 +39,7 @@ Um trecho da saída da amostra de Receitas, com um registro e a UG que o emitiu,
 @prefix rec: <https://example.org/ontologia-portal-transparencia-es/base-receitas#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<http://localhost:8000/id/receitas/2025/registro/af1f5922e867e09a9f97> a rec:RegistroDeReceitaOrcamentaria ;
+<http://localhost:8000/id/receitas/2025/registro/1> a rec:RegistroDeReceitaOrcamentaria ;
     rec:RegistroDeReceitaOrcamentaria.codigoIdUso "1" ;
     rec:RegistroDeReceitaOrcamentaria.dataContabilizacao "2025-12-30T02:12:14"^^xsd:dateTime ;
     rec:RegistroDeReceitaOrcamentaria.descricaoIdUso "RECURSOS DO EXERCÍCIO CORRENTE" ;
@@ -48,7 +48,7 @@ Um trecho da saída da amostra de Receitas, com um registro e a UG que o emitiu,
     rec:RegistroDeReceitaOrcamentaria.temUnidadeGestoraEmitenteDeReceita <http://localhost:8000/id/unidade-gestora/800102> ;
     rec:RegistroDeReceitaOrcamentaria.tipo "ARRECADADA-LIQUIDA" ;
     rec:RegistroDeReceitaOrcamentaria.tipoLancamento "C" ;
-    rec:RegistroDeReceitaOrcamentaria.valorAtreladoNaReceita <http://localhost:8000/id/valor-receita/0_0_0_0_0_0_0_0_64546.03_0> .
+    rec:RegistroDeReceitaOrcamentaria.valorAtreladoNaReceita <http://localhost:8000/id/receitas/2025/valor/1> .
 
 <http://localhost:8000/id/unidade-gestora/800102> a rec:UnidadeGestoraBeneficiadaDeReceita,
         rec:UnidadeGestoraEmitenteDeReceita ;
@@ -170,11 +170,11 @@ Quando a saída muda de propósito, por exemplo com uma versão nova da ontologi
 
 | Amostra | Linhas do CSV | Triplas | SHA-256 do N-Triples |
 |---|---:|---:|---|
-| `amostra-receitas.csv` | 1.000 | 28.619 | `3de5f448bcde694ae0000b87286ea0b3564f49a46a6cbd62f7f77cad7d298701` |
-| `amostra-despesas.csv` | 1.000 | 44.969 | `92e6c83f6fe87f556cf92c3b14fb773e741467d3edc4d38fff35dc182031dd7d` |
-| `amostra-restos-a-pagar.csv` | 1.000 | 11.985 | `32326272aa7f2854149612923bf3dd2f331dad7eb4d4316dc93033da8fbccd59` |
-| `amostra-orcamentos-despesa.csv` | 1.000 | 27.398 | `5d3c2e89c1374b59267c5f7418157559adcea14a82212ee22e030989a2d85dd9` |
-| `amostra-orcamentos-execucoes.csv` | 125 | 2.368 | `8ceb18308226880f9897c95321fb0a9907f39301d95d4979740c9687cff59b83` |
+| `amostra-receitas.csv` | 1.000 | 30.053 | `5635ed7f293e790cabc5f00aa59da0f39d3728c705253be4ec7d03976adcbbfe` |
+| `amostra-despesas.csv` | 1.000 | 45.914 | `595ad5975acf03b8e47844caddacde1d4f4b4a2437275743222e2dd025b6cbea` |
+| `amostra-restos-a-pagar.csv` | 1.000 | 15.429 | `470ce2897e165a276f08c82cdc8dc7ebe32a5e71c90f667d463f85c59e50ef8e` |
+| `amostra-orcamentos-despesa.csv` | 1.000 | 29.984 | `b1739831eeff5f430d623a5835c7440d824419abbff2f82b99cceff691a1e4ca` |
+| `amostra-orcamentos-execucoes.csv` | 125 | 2.375 | `3cd77b4439ba60657bb4d77d115eaf9426b3ffaa50245c5ee414db2b5c6c1eed` |
 
 ## Organização do repositório
 
@@ -240,16 +240,17 @@ As URIs dos dados começam com `http://localhost:8000/id/`. Alguns exemplos, tir
 | unidade gestora | `http://localhost:8000/id/unidade-gestora/800102` |
 | fonte de recursos | `http://localhost:8000/id/fonte/500.100200` |
 | receita (UG emitente e documento) | `http://localhost:8000/id/receitas/2025/receita/800102-2025GR07548` |
+| registro de receita (posição da linha no arquivo) | `http://localhost:8000/id/receitas/2025/registro/1` |
 | registro de despesa (arquivo e Id da linha) | `http://localhost:8000/id/despesas/despesas/2025/registro/279277262` |
 
-O nome do arquivo entra nas URIs das entidades que existem uma vez por linha em Despesas porque o Id da linha só é único dentro de um arquivo.
+O registro, a classificação e o valor existem uma vez por linha, e cada linha tem os seus. Em Receitas, a URI deles usa a posição da linha no arquivo, porque o CSV não tem uma coluna de identificador. Em Despesas, usa o Id da linha, com o nome do arquivo no caminho, porque o Id só é único dentro de um arquivo.
 
 Esse começo é provisório: hoje essas URIs não levam a nenhuma página. Os namespaces da ontologia também são provisórios (`https://example.org/ontologia-portal-transparencia-es/...`). Quando o projeto tiver endereços definitivos, mudam o `URL_BASE_DADOS`, em `config.py`, e os três namespaces, em `rdf/vocabularios.py`, que têm de ser iguais aos dos `.ttl`.
 
 ## Limitações e próximos passos
 
 - As URIs dos dados e os namespaces da ontologia ainda são provisórios.
-- Em Despesas, as entidades que existem uma vez por linha usam o Id da linha na URI, e esse Id muda de um download para outro.
+- As entidades que existem uma vez por linha não têm URI estável: em Receitas a URI usa a posição da linha, que muda se o portal reordenar o arquivo, e em Despesas usa o Id da linha, que muda de um download para outro.
 - O favorecido de Restos a Pagar fica de fora, porque a ontologia não tem uma relação que o ligue a esse tipo de registro.
 - A validação em lotes não vê conflitos entre entidades de lotes diferentes.
 - As ligações com bases externas ficam para depois.

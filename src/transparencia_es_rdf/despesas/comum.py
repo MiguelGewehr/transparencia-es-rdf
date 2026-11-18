@@ -20,10 +20,8 @@ from transparencia_es_rdf.rdf.vocabularios import RDF_TYPE
 
 
 def criar_estado(destino) -> dict:
-    """O estado comum (rdf/escrita.py) mais o que só Despesas precisa lembrar."""
-    estado = criar_estado_comum(destino, mapeamento.COLUNAS_DE_DATA_E_HORA)
-    estado['valores_escritos'] = set()               # URIs dos valores já escritos
-    return estado
+    """O estado comum (rdf/escrita.py), com as colunas de data e hora de Despesas."""
+    return criar_estado_comum(destino, mapeamento.COLUNAS_DE_DATA_E_HORA)
 
 
 # ---------------------------------------------------------------------------
@@ -76,22 +74,16 @@ def escrever_compartilhadas(estado: dict, linha: dict, compartilhadas: dict) -> 
     return uris_da_linha
 
 
-def escrever_valor(estado: dict, linha: dict, tipo_do_valor: str, classe: str, atributos_do_valor: dict) -> str:
-    """Escreve o conjunto de números da linha, se ainda não foi escrito, e devolve a URI dele.
+def escrever_valor(estado: dict, nome_do_arquivo: str, linha: dict, classe: str, atributos_do_valor: dict) -> str:
+    """Escreve os números da linha como o valor do registro e devolve a URI do valor.
 
-    É como o valor de Receitas: a URI é feita dos próprios números, na ordem
-    das colunas em atributos_do_valor, então uma URI já vista não tem nada de
-    novo. Guardar só a URI, e não as triplas, poupa memória: no arquivo
-    Despesas de 2025 são 514.075 valores diferentes.
+    O valor é de um registro só, então a URI usa o Id da linha, como a do
+    registro. Duas linhas com os mesmos números têm dois valores diferentes.
     """
-    colunas = list(atributos_do_valor)
-    numeros = [Decimal(linha[coluna]) for coluna in colunas]
-    uri_valor = uris.uri_do_valor(tipo_do_valor, numeros)
-    if uri_valor not in estado['valores_escritos']:
-        estado['valores_escritos'].add(uri_valor)
-        escrever(estado, uri_valor, RDF_TYPE, uri(classe))
-        for coluna, numero in zip(colunas, numeros):
-            escrever(estado, uri_valor, atributos_do_valor[coluna], literal_de_decimal(numero))
+    uri_valor = uris.uri_por_linha(nome_do_arquivo, linha, 'valor')
+    escrever(estado, uri_valor, RDF_TYPE, uri(classe))
+    for coluna, propriedade_do_valor in atributos_do_valor.items():
+        escrever(estado, uri_valor, propriedade_do_valor, literal_de_decimal(Decimal(linha[coluna])))
     return uri_valor
 
 

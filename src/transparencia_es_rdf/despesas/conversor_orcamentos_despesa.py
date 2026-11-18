@@ -58,7 +58,7 @@ def _converter_linha(estado: dict, linha: dict) -> None:
                                  mapeamento.ATRIBUTOS_DA_UNIDADE_ORCAMENTARIA),
     }
     uris_da_linha = comum.escrever_compartilhadas(estado, linha, compartilhadas)
-    uri_valor = comum.escrever_valor(estado, linha, 'valor-orcamento-despesa',
+    uri_valor = comum.escrever_valor(estado, NOME_DO_ARQUIVO, linha,
                                      mapeamento.CLASSE_VALOR_ORCAMENTO_DESPESA,
                                      mapeamento.ATRIBUTOS_DO_VALOR_ORCAMENTO_DESPESA)
 

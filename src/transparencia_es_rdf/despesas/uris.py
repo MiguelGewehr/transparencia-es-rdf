@@ -3,9 +3,9 @@
 Cada linha do CSV tem um Id único dentro do seu arquivo (no arquivo Despesas
 de 2025, os 1.456.562 Ids são todos diferentes). As entidades que existem uma
 vez por linha usam esse Id, com o nome do arquivo no caminho, porque o Id não
-é único entre arquivos: em RestosAPagar os Ids começam em 1. As que muitas
-linhas repetem usam os seus códigos, um em cada pedaço do caminho; os valores
-usam os seus próprios números, como em Receitas. As URIs da UG e da fonte não
+é único entre arquivos: em RestosAPagar os Ids começam em 1. O valor também é
+um por linha e usa o Id. As que muitas linhas repetem usam os seus códigos,
+um em cada pedaço do caminho. As URIs da UG e da fonte não
 estão aqui: vêm do núcleo, para serem as mesmas de Receitas.
 
 Uma entidade com a mesma URI em dois arquivos é a mesma entidade no grafo:
@@ -17,9 +17,6 @@ quer dizer "nada" (retenção, banco, convênios, município e favorecido do
 orçamento) devolvem None quando a linha não tem a entidade.
 """
 
-from decimal import Decimal
-
-from transparencia_es_rdf.rdf.ntriples import numero_canonico
 from transparencia_es_rdf.rdf.vocabularios import uri_de_dado
 
 # Na coluna CodigoConvenioConcedido, "0" quer dizer que a linha não tem
@@ -36,23 +33,13 @@ TEXTO_SEM_VALOR = 'null'
 
 
 def uri_por_linha(nome_do_arquivo: str, linha: dict, entidade: str) -> str:
-    """URI do registro, da despesa, da classificação ou do classificador institucional.
+    """URI do registro, da despesa, da classificação, do classificador institucional ou do valor.
 
     O nome do arquivo é o de despesas/arquivo.py ('despesas', 'restos-a-pagar'...).
     Exemplo: uri_por_linha('despesas', linha, 'registro') devolve
     'http://localhost:8000/id/despesas/despesas/2025/registro/279277262'.
     """
     return uri_de_dado('despesas', nome_do_arquivo, linha['Ano'], entidade, linha['Id'])
-
-
-def uri_do_valor(tipo_do_valor: str, numeros: list[Decimal]) -> str:
-    """Os números na forma canônica, separados por "_".
-
-    Cada arquivo tem o seu tipo de valor, com números diferentes. Exemplo:
-    uri_do_valor('valor-despesa', numeros) devolve .../id/valor-despesa/0_0_190.59_0.
-    """
-    chave = '_'.join(numero_canonico(numero) for numero in numeros)
-    return uri_de_dado(tipo_do_valor, chave)
 
 
 def uri_do_favorecido(linha: dict) -> str:

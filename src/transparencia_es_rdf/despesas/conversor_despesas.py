@@ -76,7 +76,7 @@ def _converter_linha(estado: dict, linha: dict) -> None:
                               mapeamento.CLASSE_CONVENIO_RECEBIDO, mapeamento.ATRIBUTOS_DO_CONVENIO_RECEBIDO),
     }
     uris_da_linha = comum.escrever_compartilhadas(estado, linha, compartilhadas)
-    uri_valor = comum.escrever_valor(estado, linha, 'valor-despesa', mapeamento.CLASSE_VALOR,
+    uri_valor = comum.escrever_valor(estado, NOME_DO_ARQUIVO, linha, mapeamento.CLASSE_VALOR,
                                      mapeamento.ATRIBUTOS_DO_VALOR)
 
     # 2. As entidades que existem uma vez por linha: a despesa e o registro,

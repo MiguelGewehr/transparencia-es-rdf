@@ -93,8 +93,6 @@ def _converter(nome_base: str, entrada: Path, saida: Path) -> None:
 
     print(f'{_milhares(relatorio["linhas_lidas"])} linhas lidas de {entrada}')
     print(f'{_milhares(relatorio["triplas_escritas"])} triplas gravadas em {saida} ({segundos:.0f} s)')
-    if 'linhas_repetidas' in relatorio:       # só Receitas junta linhas repetidas
-        print(f'Linhas repetidas, escritas uma vez só: {_milhares(relatorio["linhas_repetidas"])}')
     print('Entidades por classe:')
     for classe, quantidade in relatorio['entidades_por_classe'].items():
         print(f'  {classe:<46}{_milhares(quantidade):>10}')
