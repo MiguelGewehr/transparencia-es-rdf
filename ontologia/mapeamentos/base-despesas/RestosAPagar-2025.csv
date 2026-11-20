@@ -10,4 +10,6 @@ Favorecido ; nucleo.DadosPessoaisAnonimizados.nome
 ValorNaoProcessado ; base-despesas.RegistroDeRestosAPagar.valorAtrelado.valorNaoProcessado
 ValorProcessado ; base-despesas.RegistroDeRestosAPagar.valorAtrelado.valorProcessado
 ValorNaoProcessadoLiquidado ; base-despesas.RegistroDeRestosAPagar.valorAtrelado.valorNaoProcessadoLiquidado
+CodigoDetalhamentoFonte ; base-despesas.FonteDaDespesa.codigoDetalhamentoFonte
+DetalhamentoFonte ; base-despesas.FonteDaDespesa.descricaoDetalhamentoFonte
 Id ; base-despesas.RegistroDeRestosAPagar.idRegistro

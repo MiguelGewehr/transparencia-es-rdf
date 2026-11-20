@@ -2,7 +2,7 @@
 
 Converte as bases de Receitas e de Despesas do Portal de Dados Abertos do Espírito Santo ([dados.es.gov.br](https://dados.es.gov.br)) para RDF, com as classes e as propriedades da ontologia do projeto, valida o resultado com SHACL e consulta os dados com SPARQL.
 
-Versão 0.1.0: conversão, validação e consultas SPARQL de Receitas (arquivo de 2025) e dos quatro arquivos de Despesas que a ontologia descreve: Despesas (2025), Restos a Pagar (2024), Orçamentos de Despesa (2025) e Orçamentos de Execuções (2025).
+Versão 0.1.0: conversão, validação e consultas SPARQL de Receitas (arquivo de 2025) e dos quatro arquivos de Despesas que a ontologia descreve: Despesas (2025), Restos a Pagar (2025), Orçamentos de Despesa (2025) e Orçamentos de Execuções (2025).
 
 A ferramenta trabalha só com os CSVs já baixados e não consulta a internet. A versão que também gera um cabeçalho de metadados de proveniência, consultando a API do portal, está na branch [`com-metadados`](../../tree/com-metadados).
 
@@ -30,7 +30,7 @@ As duas bases se ligam pela unidade gestora (UG) e pela fonte de recursos, que r
 
 Nos arquivos de 2025, 190 fontes aparecem nas duas bases. Das 121 UGs de Receitas, 115 aparecem no arquivo Despesas e as 121 aparecem em algum dos quatro arquivos de Despesas. Nas amostras, por exemplo, a fonte `500.100200` aparece em Receitas e em Despesas com a mesma URI.
 
-Os quatro arquivos de Despesas também se ligam entre si: uma entidade com a mesma URI em dois arquivos é a mesma entidade no grafo. A UG se liga nos quatro, e a esfera e os classificadores funcional e por natureza ligam Orçamentos de Despesa a Despesas.
+Os quatro arquivos de Despesas também se ligam entre si: uma entidade com a mesma URI em dois arquivos é a mesma entidade no grafo. A UG se liga nos quatro, a esfera e os classificadores funcional e por natureza ligam Orçamentos de Despesa a Despesas, e a fonte de Restos a Pagar tem a mesma URI da fonte de Despesas e de Receitas.
 
 Um trecho da saída da amostra de Receitas, com um registro e a UG que o emitiu, em Turtle:
 
@@ -75,7 +75,7 @@ Os comandos rodam na pasta do repositório, com o ambiente ativado. `transparenc
 
 ### Converter as amostras
 
-As amostras estão no repositório, em [`dados/`](dados): o cabeçalho e as primeiras 1.000 linhas de Receitas 2025, Despesas 2025, Restos a Pagar 2024 e Orçamentos de Despesa 2025, e o arquivo inteiro de Orçamentos de Execuções 2025, que tem 125 linhas.
+As amostras estão no repositório, em [`dados/`](dados): o cabeçalho e as primeiras 1.000 linhas de Receitas 2025, Despesas 2025, Restos a Pagar 2025 e Orçamentos de Despesa 2025, e o arquivo inteiro de Orçamentos de Execuções 2025, que tem 125 linhas.
 
 ```
 transparencia-es-rdf converter receitas dados/receitas/amostra/amostra-receitas.csv saida/rdf/amostra-receitas.nt
@@ -101,22 +101,22 @@ Baixe o CSV no portal ([Receitas](https://dados.es.gov.br/dataset/portal-da-tran
 ```
 transparencia-es-rdf converter receitas dados/receitas/bruto/receitas2025.csv saida/rdf/receitas-2025.nt.gz
 transparencia-es-rdf converter despesas dados/despesas/bruto/despesas2025.csv saida/rdf/despesas-2025.nt.gz
-transparencia-es-rdf converter despesas dados/despesas/bruto/RestosAPagar-2024.csv saida/rdf/restos-a-pagar-2024.nt.gz
+transparencia-es-rdf converter despesas dados/despesas/bruto/restosapagar-2025.csv saida/rdf/restos-a-pagar-2025.nt.gz
 transparencia-es-rdf converter despesas dados/despesas/bruto/orcamentosdespesa-2025.csv saida/rdf/orcamentos-despesa-2025.nt.gz
 transparencia-es-rdf converter despesas dados/despesas/bruto/orcamentosexecucoes-2025.csv saida/rdf/orcamentos-execucoes-2025.nt.gz
 ```
 
 As triplas são gravadas à medida que as linhas são lidas, sem carregar o CSV inteiro na memória. Os arquivos de 2025 de Receitas e de Despesas têm cerca de 1 GB e 1,5 GB, e cada conversão leva poucos minutos num computador pessoal.
 
-| Arquivo | Linhas | Triplas |
-|---|---:|---:|
-| Receitas 2025 | 1.004.745 | 17.293.607 |
-| Despesas 2025 | 1.456.562 | 45.509.544 |
-| Restos a Pagar 2024 | 8.770 | 100.715 |
-| Orçamentos de Despesa 2025 | 72.523 | 1.708.523 |
-| Orçamentos de Execuções 2025 | 125 | 2.368 |
+| Arquivo | Linhas | Triplas | Tempo | Memória |
+|---|---:|---:|---:|---:|
+| Receitas 2025 | 1.004.745 | 26.359.767 | 78 s | 105 MB |
+| Despesas 2025 | 1.456.562 | 50.221.979 | 186 s | 186 MB |
+| Restos a Pagar 2025 | 8.745 | 140.766 | 0,6 s | 43 MB |
+| Orçamentos de Despesa 2025 | 72.523 | 1.920.581 | 6,9 s | 81 MB |
+| Orçamentos de Execuções 2025 | 125 | 2.375 | 0,2 s | 43 MB |
 
-O portal atualiza os arquivos, então um CSV baixado em outra data pode dar outros números.
+O tempo e o pico de memória foram medidos num MacBook Air com M1 e 8 GB. O portal atualiza os arquivos, então um CSV baixado em outra data pode dar outros números: o arquivo de Despesas de 2025 baixado de novo em 19 de novembro de 2026, por exemplo, tem as mesmas linhas, mas com outro `Id` e em outra ordem, e por isso gera outras URIs. Para saber se o CSV é o mesmo usado aqui, compare o MD5 dele com o da tabela de [Como conferir o resultado](#como-conferir-o-resultado).
 
 ### Validar com SHACL
 
@@ -130,16 +130,26 @@ transparencia-es-rdf validar despesas dados/despesas/bruto/despesas2025.csv
 
 O `formas` grava as formas em `saida/formas/<base>.ttl`, só para leitura: o `validar` gera as formas de novo a cada vez, a partir da ontologia. O `validar` mostra o resumo na tela e grava `saida/validacao/<nome do CSV>.csv`, com uma linha por regra violada: a forma, a regra, o tipo da violação, quantos recursos a violam e um recurso de exemplo.
 
-A pySHACL carrega o grafo na memória, então o `validar` converte o CSV em lotes (10.000 linhas por padrão, ou o número dado em `--linhas-por-lote`) e soma o resultado. Cada lote é convertido com um estado novo e sai completo. O que a validação em lotes não vê é um conflito entre lotes: se uma entidade tem uma descrição nas linhas de um lote e outra nas de outro, o "valores a mais" não aparece. Pela velocidade medida em Orçamentos de Despesa (cerca de 5.500 triplas por segundo), o arquivo de Despesas de 2025 leva mais de duas horas para validar, e o de Receitas, perto de uma hora. São estimativas, e o tempo depende do computador.
+A pySHACL carrega o grafo na memória, então o `validar` converte o CSV em lotes (10.000 linhas por padrão, ou o número dado em `--linhas-por-lote`) e soma o resultado. Cada lote é convertido com um estado novo e sai completo. O que a validação em lotes não vê é um conflito entre lotes: se uma entidade tem uma descrição nas linhas de um lote e outra nas de outro, o "valores a mais" não aparece. Num MacBook Air com M1 e 8 GB, a validação do arquivo de Receitas de 2025 levou cerca de 38 minutos, e a do arquivo de Despesas de 2025, cerca de uma hora e 35 minutos. O tempo depende do computador.
 
-As violações mostram onde o arquivo do portal e a ontologia não se encaixam. Quase todas são de dado que falta: parte é falta de dado no portal (descrições vazias, municípios com o texto `null`) e parte é algo que a ontologia pede e o arquivo não traz (a unidade orçamentária no arquivo Despesas, os classificadores em Restos a Pagar).
+As violações mostram onde o arquivo do portal e a ontologia não se encaixam. Nos arquivos completos de 2025:
+
+| Arquivo | Lotes | Triplas validadas | Regras violadas | Violações |
+|---|---:|---:|---:|---:|
+| Receitas 2025 | 101 | 27.919.030 | 4 | 244 |
+| Despesas 2025 | 146 | 57.315.373 | 12 | 1.968.481 |
+| Restos a Pagar 2025 | 1 | 140.766 | 18 | 44.984 |
+| Orçamentos de Despesa 2025 | 8 | 2.014.815 | 14 | 147.044 |
+| Orçamentos de Execuções 2025 | 1 | 2.375 | 3 | 375 |
+
+Nenhuma violação é de domínio, de imagem ou de tipo de dado. Quase todas são de dado que falta, e se dividem em dois grupos. O maior, com 72,7% das violações, é o de dados que a ontologia pede e o arquivo não traz, porque não tem a coluna: a unidade orçamentária no arquivo Despesas (sozinha, 67,4% de todas as violações), os classificadores em Restos a Pagar, o órgão em Orçamentos de Despesa e a entidade pública e a unidade de cada UG em todos os arquivos. O segundo, com 26,9%, é o de colunas que existem, mas vêm vazias ou com o texto `null`: o histórico e o processo em Despesas, as colunas `Orgao` e `DescricaoEsfera`, vazias em todas as linhas de Despesas, e o município e o favorecido em Orçamentos de Despesa. As outras 0,4% são sete ações com duas descrições em Orçamentos de Despesa e o `idRegistro` de Restos a Pagar, que a ontologia declara em duas classes.
 
 ### Consultar com SPARQL
 
 Com os dados em RDF, uma consulta SPARQL junta arquivos diferentes pela mesma entidade: a UG e a fonte, que têm a mesma URI em Receitas e em Despesas, ou o código da função de governo. O `carregar` põe os N-Triples num banco do [Oxigraph](https://github.com/oxigraph/oxigraph) (biblioteca pyoxigraph), que guarda as triplas em disco e por isso aguenta os arquivos completos. O `consultar` roda as consultas nesse banco.
 
 ```
-transparencia-es-rdf carregar saida/rdf/receitas-2025.nt.gz saida/rdf/despesas-2025.nt.gz saida/rdf/restos-a-pagar-2024.nt.gz saida/rdf/orcamentos-despesa-2025.nt.gz saida/rdf/orcamentos-execucoes-2025.nt.gz
+transparencia-es-rdf carregar saida/rdf/receitas-2025.nt.gz saida/rdf/despesas-2025.nt.gz saida/rdf/restos-a-pagar-2025.nt.gz saida/rdf/orcamentos-despesa-2025.nt.gz saida/rdf/orcamentos-execucoes-2025.nt.gz
 transparencia-es-rdf consultar consultas/*.rq
 ```
 
@@ -166,15 +176,31 @@ wc -l saida/rdf/amostra-receitas.nt saida/rdf/amostra-despesas.nt
 shasum -a 256 saida/rdf/amostra-receitas.nt saida/rdf/amostra-despesas.nt
 ```
 
-Quando a saída muda de propósito, por exemplo com uma versão nova da ontologia, a tabela abaixo é atualizada no mesmo commit.
+Quando a saída muda de propósito, por exemplo com uma versão nova da ontologia, as tabelas abaixo são atualizadas no mesmo commit.
 
 | Amostra | Linhas do CSV | Triplas | SHA-256 do N-Triples |
 |---|---:|---:|---|
 | `amostra-receitas.csv` | 1.000 | 30.053 | `5635ed7f293e790cabc5f00aa59da0f39d3728c705253be4ec7d03976adcbbfe` |
 | `amostra-despesas.csv` | 1.000 | 45.914 | `595ad5975acf03b8e47844caddacde1d4f4b4a2437275743222e2dd025b6cbea` |
-| `amostra-restos-a-pagar.csv` | 1.000 | 15.429 | `470ce2897e165a276f08c82cdc8dc7ebe32a5e71c90f667d463f85c59e50ef8e` |
+| `amostra-restos-a-pagar.csv` | 1.000 | 16.465 | `60cd89253fc467ece61063d6a19dc11bd615227b6df6d815f6d2edeff135fbd5` |
 | `amostra-orcamentos-despesa.csv` | 1.000 | 29.984 | `b1739831eeff5f430d623a5835c7440d824419abbff2f82b99cceff691a1e4ca` |
 | `amostra-orcamentos-execucoes.csv` | 125 | 2.375 | `3cd77b4439ba60657bb4d77d115eaf9426b3ffaa50245c5ee414db2b5c6c1eed` |
+
+Para os arquivos completos, o resumo é calculado sobre o N-Triples descompactado, porque o `gzip` grava no arquivo a hora da compactação, e duas compactações do mesmo N-Triples dão resumos diferentes:
+
+```
+gzip -dc saida/rdf/receitas-2025.nt.gz | shasum -a 256
+```
+
+| Arquivo | MD5 do CSV | SHA-256 do N-Triples |
+|---|---|---|
+| Receitas 2025 | `6506cdd610faf52cd24d2003bac94c4e` | `b9d98b63a93320e2207487cae7ca91a98b9db55cfde291bb207a1c2f62752967` |
+| Despesas 2025 | `0afd03f766f5eb831fb68ab5b859ea19` | `a8f2bc144f229b05dd62cfe59cf3ff2fd2f5a9dddd63c80ca8db4322b7019ac8` |
+| Restos a Pagar 2025 | `4bf268b8518afdd5c5ed13bc74542d99` | `cab372cfeb96afba31a47e29bd8b59c25439e0f4fe2539e373cffc1849d31d34` |
+| Orçamentos de Despesa 2025 | `1bc591a33ad097e06221dfd71e26648d` | `9ad3f6c9185bdb44b799c7f092b89fbf5e12ed9af312fd61eb5f273cd6c869cd` |
+| Orçamentos de Execuções 2025 | `0c48803af5f80768c993993511f0bcf8` | `3cd77b4439ba60657bb4d77d115eaf9426b3ffaa50245c5ee414db2b5c6c1eed` |
+
+Um CSV com o mesmo MD5, convertido com esta versão, tem de dar o mesmo SHA-256.
 
 ## Organização do repositório
 
@@ -213,7 +239,7 @@ No código, uma função com o nome começando em `_` só é usada dentro do pr�
 
 ## A ontologia
 
-A pasta [`ontologia/`](ontologia) guarda uma cópia dos arquivos do [secont-ontologias](https://github.com/Renzo-Henrique/secont-ontologias) no commit `e99443d`, de 17 de novembro de 2026:
+A pasta [`ontologia/`](ontologia) guarda uma cópia dos arquivos do [secont-ontologias](https://github.com/Renzo-Henrique/secont-ontologias) no commit `5937382`, de 18 de novembro de 2026:
 
 | Pasta | O que tem |
 |---|---|
@@ -221,6 +247,8 @@ A pasta [`ontologia/`](ontologia) guarda uma cópia dos arquivos do [secont-onto
 | `src/` | o modelo em Tonto, do qual os `.ttl` são gerados |
 | `mapeamentos/` | as tabelas da equipe que dizem a qual atributo vai cada coluna do CSV |
 | `out/diagramas/` | os diagramas das classes |
+
+Com o Tonto 0.9.3, o `tonto check` não aponta erros nem avisos nesse commit, só 13 sugestões de modelagem, e os `.ttl` de `out/ttl/` têm as mesmas triplas que o `tonto gufo` gera a partir de `src/`, mais um cabeçalho de metadados (título, descrição e autores) que o repositório da ontologia acrescenta.
 
 A conversão não lê esses arquivos: os nomes das classes e das propriedades estão escritos no `mapeamento.py` de cada base e nos arquivos do `nucleo/`, do mesmo jeito que nos `.ttl`. Eles registram com qual versão da ontologia as triplas foram geradas. A validação lê os `.ttl` de `out/ttl/` para gerar as formas SHACL.
 
@@ -250,9 +278,9 @@ Esse começo é provisório: hoje essas URIs não levam a nenhuma página. Os na
 ## Limitações e próximos passos
 
 - As URIs dos dados e os namespaces da ontologia ainda são provisórios.
-- As entidades que existem uma vez por linha não têm URI estável: em Receitas a URI usa a posição da linha, que muda se o portal reordenar o arquivo, e em Despesas usa o Id da linha, que muda de um download para outro.
+- As entidades que existem uma vez por linha não têm URI estável: em Receitas a URI usa a posição da linha, que muda se o portal reordenar o arquivo, e em Despesas usa o Id da linha, que muda de um download para outro. Falta um identificador estável publicado pelo próprio portal.
 - O favorecido de Restos a Pagar fica de fora, porque a ontologia não tem uma relação que o ligue a esse tipo de registro.
-- A validação em lotes não vê conflitos entre entidades de lotes diferentes.
+- A validação em lotes não vê conflitos entre entidades de lotes diferentes, e é a etapa mais demorada; validar direto no banco de triplas resolveria as duas coisas.
 - As ligações com bases externas ficam para depois.
 
 ## Autoria e licença

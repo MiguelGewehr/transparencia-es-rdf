@@ -125,7 +125,7 @@ def escrever_classificacao(estado: dict, nome_do_arquivo: str, linha: dict, uri_
     """Escreve a classificação que classifica o registro e devolve a URI dela.
 
     classificadores são os pares (relação, URI do classificador) que o
-    arquivo tem: o arquivo Despesas tem os cinco; o RestosAPagar, só a natureza.
+    arquivo tem: o arquivo Despesas tem os cinco; o RestosAPagar, a natureza e a fonte.
     """
     uri_classificacao = uris.uri_por_linha(nome_do_arquivo, linha, 'classificacao')
     escrever(estado, uri_classificacao, RDF_TYPE, uri(mapeamento.CLASSE_CLASSIFICACAO))

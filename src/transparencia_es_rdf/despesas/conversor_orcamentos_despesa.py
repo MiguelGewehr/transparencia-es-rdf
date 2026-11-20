@@ -1,6 +1,6 @@
 """Conversão das linhas do arquivo OrcamentosDespesa em triplas.
 
-O que a ontologia (commit e99443d) diz que uma linha descreve (as setas
+O que a ontologia (commit 5937382) diz que uma linha descreve (as setas
 marcadas com * só existem se a linha tiver a entidade):
 
     Registro --temDespesaOrcamentaria---------> Despesa

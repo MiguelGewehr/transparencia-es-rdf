@@ -1,6 +1,6 @@
 """Conversão das linhas do arquivo RestosAPagar em triplas.
 
-O que a ontologia (commit e99443d) diz que uma linha descreve:
+O que a ontologia (commit 5937382) diz que uma linha descreve:
 
     Registro --temDespesaOrcamentaria---------> Despesa
     Registro --temUnidadeGestoraDaDespesa-----> UG
@@ -9,6 +9,7 @@ O que a ontologia (commit e99443d) diz que uma linha descreve:
 
     Classificação --classifica----------------> Registro
     Classificação --naturezaClassificadaPor---> Natureza (só o elemento)
+    Classificação --fonteClassificadaPor------> Fonte (só o detalhamento)
 
 O arquivo não tem as outras colunas de classificação, e o favorecido fica de
 fora porque a ontologia não o liga a este tipo de registro (ver a parte de
@@ -16,6 +17,7 @@ RestosAPagar em despesas/mapeamento.py).
 """
 
 from transparencia_es_rdf.despesas import comum, mapeamento, uris
+from transparencia_es_rdf.nucleo.fonte import uri_da_fonte
 from transparencia_es_rdf.nucleo.unidade_gestora import uri_da_unidade_gestora
 from transparencia_es_rdf.rdf.escrita import montar_relatorio
 
@@ -34,6 +36,8 @@ def _converter_linha(estado: dict, linha: dict) -> None:
         'poder': (uris.uri_do_poder(linha), mapeamento.CLASSE_PODER, mapeamento.ATRIBUTOS_DO_PODER),
         'natureza': (uris.uri_da_natureza_por_elemento(linha), mapeamento.CLASSE_NATUREZA,
                      mapeamento.ATRIBUTOS_DA_NATUREZA_RESTOS_A_PAGAR),
+        'fonte': (uri_da_fonte(linha['CodigoDetalhamentoFonte']), mapeamento.CLASSE_FONTE,
+                  mapeamento.ATRIBUTOS_DA_FONTE_RESTOS_A_PAGAR),
     }
     uris_da_linha = comum.escrever_compartilhadas(estado, linha, compartilhadas)
     uri_valor = comum.escrever_valor(estado, NOME_DO_ARQUIVO, linha, mapeamento.CLASSE_VALOR_RESTOS_A_PAGAR,
@@ -49,6 +53,7 @@ def _converter_linha(estado: dict, linha: dict) -> None:
                                            ligacoes_do_registro)
     comum.escrever_classificacao(estado, NOME_DO_ARQUIVO, linha, uri_registro, [
         (mapeamento.RELACAO_NATUREZA, uris_da_linha['natureza']),
+        (mapeamento.RELACAO_FONTE, uris_da_linha['fonte']),
     ])
 
 

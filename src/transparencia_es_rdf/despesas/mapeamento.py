@@ -3,7 +3,7 @@ classes e relações que a ontologia usa para ligar as entidades.
 
 É a tabela que se confere contra o mapeamento da equipe, que tem um arquivo
 para cada arquivo do portal (ontologia/mapeamentos/base-despesas/, commit
-e99443d). A primeira parte é a do arquivo Despesas; as outras três, a dos
+5937382). A primeira parte é a do arquivo Despesas; as outras três, a dos
 arquivos RestosAPagar, OrcamentosDespesa e OrcamentosExecucoes, reaproveitam
 as classes e os atributos da primeira quando as colunas são as mesmas.
 
@@ -238,12 +238,13 @@ COLUNAS_DE_DATA_E_HORA = {'Data'}
 
 
 # ===========================================================================
-# RestosAPagar (13 colunas)
+# RestosAPagar (15 colunas)
 # ===========================================================================
 #
 # A ontologia liga o registro de restos a pagar ao valor e ao poder. O
 # registro também é um RegistroDeDespesaOrcamentaria, então tem a despesa e a
-# UG; e a classificação, que classifica qualquer registro, o liga à natureza.
+# UG; e a classificação, que classifica qualquer registro, o liga à natureza
+# e à fonte.
 # CpfCnpjNis e Favorecido ficam de fora: o mapeamento da equipe os põe em
 # DadosPessoaisAnonimizados, mas a ontologia não tem uma relação que ligue o
 # registro de restos a pagar a eles (a dadosDoFavorecido é só de
@@ -282,6 +283,14 @@ ATRIBUTOS_DO_PODER = {
 ATRIBUTOS_DA_NATUREZA_RESTOS_A_PAGAR = {
     'CodigoElemento': propriedade(NAMESPACE_DESPESAS, 'ClassificadorPorNaturezaDeDespesa', 'codigoElementoDespesa'),
     'Elemento': propriedade(NAMESPACE_DESPESAS, 'ClassificadorPorNaturezaDeDespesa', 'descricaoElementoDespesa'),
+}
+
+# Fonte (2 colunas): só o detalhamento, sem o código e a descrição da fonte,
+# que o arquivo não tem. A URI é a mesma da fonte de Despesas e de Receitas
+# (nucleo/fonte.py).
+ATRIBUTOS_DA_FONTE_RESTOS_A_PAGAR = {
+    'CodigoDetalhamentoFonte': propriedade(NAMESPACE_DESPESAS, 'FonteDaDespesa', 'codigoDetalhamentoFonte'),
+    'DetalhamentoFonte': propriedade(NAMESPACE_DESPESAS, 'FonteDaDespesa', 'descricaoDetalhamentoFonte'),
 }
 
 # Ano (1) e UG (2): ATRIBUTOS_DA_DESPESA e ATRIBUTOS_DA_UG, da primeira parte.

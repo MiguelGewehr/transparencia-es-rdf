@@ -54,7 +54,7 @@ COLUNAS_DESPESAS = [
     'Id',
 ]
 
-# As 13 colunas do arquivo RestosAPagar, na ordem do arquivo de 2024. Restos a
+# As 15 colunas do arquivo RestosAPagar, na ordem do arquivo de 2025. Restos a
 # pagar são as despesas empenhadas e não pagas até 31 de dezembro (MCASP,
 # seção 4.7, citado na ontologia).
 COLUNAS_RESTOS_A_PAGAR = [
@@ -64,6 +64,7 @@ COLUNAS_RESTOS_A_PAGAR = [
     'CodigoElemento', 'Elemento',
     'CpfCnpjNis', 'Favorecido',
     'ValorNaoProcessado', 'ValorProcessado', 'ValorNaoProcessadoLiquidado',
+    'CodigoDetalhamentoFonte', 'DetalhamentoFonte',
     'Id',
 ]
 
